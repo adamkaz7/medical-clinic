@@ -47,6 +47,13 @@ public class PatientService {
                 .orElseThrow(() -> new PatientNotFoundException(email));
     }
 
+    public Patient changePatientPassword(String email, String newPassword) {
+        Patient patient = getPatientByEmail(email);
+        Patient updatedPatient = patient.withPassword(newPassword);
+        return patientRepository.update(patient)
+                .orElseThrow(() -> new PatientNotFoundException(email));
+    }
+
     private void validatePatient(Patient patient) {
         if (patient == null) {
             throw new IllegalArgumentException("Patient data is required");

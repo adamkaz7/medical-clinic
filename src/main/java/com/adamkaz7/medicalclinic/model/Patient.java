@@ -18,4 +18,16 @@ public class Patient {
     private final String lastName;
     private final String phoneNumber;
     private final LocalDate birthday;
+
+    public Patient withPassword(String newPassword) {
+        return new Patient(
+                email,
+                newPassword,
+                idCardNo,
+                firstName,
+                lastName,
+                phoneNumber,
+                birthday
+        );
+    }
 }
