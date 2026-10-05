@@ -20,21 +20,24 @@ public class PatientRepository {
         return Optional.ofNullable(patients.get(email));
     }
 
-    public boolean add(Patient patient) {
+    public Optional<Patient> add(Patient patient) {
         Patient existingPatient = patients.putIfAbsent(patient.getEmail(), patient);
-
-        return existingPatient == null;
+        if (existingPatient != null) {
+            return Optional.empty();
+        }
+        return Optional.of(patient);
     }
 
     public boolean deleteByEmail(String email) {
         Patient removedPatient = patients.remove(email);
-
         return removedPatient != null;
     }
 
-    public boolean update(Patient patient) {
+    public Optional<Patient> update(Patient patient) {
         Patient previousPatient = patients.replace(patient.getEmail(), patient);
-
-        return previousPatient != null;
+        if (previousPatient == null) {
+            return Optional.empty();
+        }
+        return Optional.of(patient);
     }
 }

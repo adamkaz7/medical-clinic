@@ -4,7 +4,7 @@ import com.adamkaz7.medicalclinic.model.Patient;
 
 import java.time.LocalDate;
 
-public record PatientRequest(
+public record CreatePatientCommand(
         String email,
         String password,
         String idCardNo,
@@ -27,6 +27,6 @@ public record PatientRequest(
 
     @Override
     public String toString() {
-        return "PatientRequest{email=" + email + '}';
+        return "CreatePatientCommand{email=" + email + '}';
     }
 }
