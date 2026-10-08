@@ -1,6 +1,7 @@
 package com.adamkaz7.medicalclinic.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -8,6 +9,7 @@ import java.time.LocalDate;
 
 @Getter
 @AllArgsConstructor
+@Builder
 @ToString
 public class Patient {
     private final String email;

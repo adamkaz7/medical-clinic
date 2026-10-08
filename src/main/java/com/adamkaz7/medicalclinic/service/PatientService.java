@@ -1,7 +1,10 @@
 package com.adamkaz7.medicalclinic.service;
 
+import com.adamkaz7.medicalclinic.command.CreatePatientCommand;
+import com.adamkaz7.medicalclinic.dto.PatientDto;
 import com.adamkaz7.medicalclinic.exception.PatientAlreadyExistsException;
 import com.adamkaz7.medicalclinic.exception.PatientNotFoundException;
+import com.adamkaz7.medicalclinic.mapper.PatientMapper;
 import com.adamkaz7.medicalclinic.model.Patient;
 import com.adamkaz7.medicalclinic.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,20 +16,25 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PatientService {
     private final PatientRepository patientRepository;
+    private final PatientMapper patientMapper;
 
-    public List<Patient> getAllPatients() {
-        return patientRepository.findAll();
+    public List<PatientDto> getAllPatients() {
+        return patientRepository.findAll()
+                .stream()
+                .map(patientMapper::toDto)
+                .toList();
     }
 
-    public Patient getPatientByEmail(String email) {
-        validateEmail(email);
-        return patientRepository.findByEmail(email)
-                .orElseThrow(() -> new PatientNotFoundException(email));
+    public PatientDto getPatientByEmail(String email) {
+        Patient patient = findPatientByEmail(email);
+        return patientMapper.toDto(patient);
     }
 
-    public Patient addPatient(Patient patient) {
+    public PatientDto addPatient(CreatePatientCommand command) {
+        Patient patient = patientMapper.toPatient(command);
         validatePatient(patient);
         return patientRepository.add(patient)
+                .map(patientMapper::toDto)
                 .orElseThrow(() -> new PatientAlreadyExistsException(patient.getEmail()));
     }
 
@@ -37,20 +45,28 @@ public class PatientService {
         }
     }
 
-    public Patient updatePatientByEmail(String email, Patient patient) {
+    public PatientDto updatePatientByEmail(String email, CreatePatientCommand command) {
+        Patient patient = patientMapper.toPatient(command);
         validateEmail(email);
         validatePatient(patient);
         if (!email.equals(patient.getEmail())) {
             throw new IllegalArgumentException("Email cannot be changed when updating a patient");
         }
         return patientRepository.update(patient)
+                .map(patientMapper::toDto)
                 .orElseThrow(() -> new PatientNotFoundException(email));
     }
 
-    public Patient changePatientPassword(String email, String newPassword) {
-        Patient patient = getPatientByEmail(email);
+    public void changePatientPassword(String email, String newPassword) {
+        Patient patient = findPatientByEmail(email);
         Patient updatedPatient = patient.withPassword(newPassword);
-        return patientRepository.update(patient)
+        patientRepository.update(updatedPatient)
+                .orElseThrow(() -> new PatientNotFoundException(email));
+    }
+
+    private Patient findPatientByEmail(String email) {
+        validateEmail(email);
+        return patientRepository.findByEmail(email)
                 .orElseThrow(() -> new PatientNotFoundException(email));
     }
 
