@@ -22,10 +22,7 @@ public class PatientRepository {
 
     public Optional<Patient> add(Patient patient) {
         Patient existingPatient = patients.putIfAbsent(patient.getEmail(), patient);
-        if (existingPatient != null) {
-            return Optional.empty();
-        }
-        return Optional.of(patient);
+        return Optional.ofNullable(existingPatient);
     }
 
     public boolean deleteByEmail(String email) {
@@ -35,9 +32,6 @@ public class PatientRepository {
 
     public Optional<Patient> update(Patient patient) {
         Patient previousPatient = patients.replace(patient.getEmail(), patient);
-        if (previousPatient == null) {
-            return Optional.empty();
-        }
-        return Optional.of(patient);
+        return Optional.ofNullable(previousPatient);
     }
 }

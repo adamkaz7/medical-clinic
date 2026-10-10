@@ -1,4 +1,4 @@
-package com.adamkaz7.medicalclinic.dto;
+package com.adamkaz7.medicalclinic.command;
 
 public record ChangePatientPasswordCommand(String password) {
     @Override
