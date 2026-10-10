@@ -2,7 +2,7 @@ package com.adamkaz7.medicalclinic.command;
 
 import java.time.LocalDate;
 
-public record CreatePatientCommand(
+public record UpdatePatientCommand(
         String email,
         String password,
         String idCardNo,

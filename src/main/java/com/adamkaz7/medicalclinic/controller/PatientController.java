@@ -2,6 +2,7 @@ package com.adamkaz7.medicalclinic.controller;
 
 import com.adamkaz7.medicalclinic.command.ChangePatientPasswordCommand;
 import com.adamkaz7.medicalclinic.command.CreatePatientCommand;
+import com.adamkaz7.medicalclinic.command.UpdatePatientCommand;
 import com.adamkaz7.medicalclinic.dto.PatientDto;
 import com.adamkaz7.medicalclinic.service.PatientService;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +42,7 @@ public class PatientController {
     @PostMapping("/{email}")
     public PatientDto updatePatientByEmail(
             @PathVariable String email,
-            @RequestBody CreatePatientCommand command
+            @RequestBody UpdatePatientCommand command
     ) {
         return patientService.updatePatientByEmail(email, command);
     }
