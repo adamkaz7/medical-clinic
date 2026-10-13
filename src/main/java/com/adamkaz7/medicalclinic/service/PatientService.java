@@ -35,9 +35,11 @@ public class PatientService {
     public PatientDto addPatient(CreatePatientCommand command) {
         Patient patient = patientMapper.toEntity(command);
         patientValidator.validatePatient(patient);
-        return patientRepository.add(patient)
-                .map(patientMapper::toDto)
-                .orElseThrow(() -> new PatientAlreadyExistsException(patient.getEmail()));
+        patientRepository.add(patient)
+                .ifPresent(existingPatient -> {
+                    throw new PatientAlreadyExistsException(existingPatient.getEmail());
+                });
+        return patientMapper.toDto(patient);
     }
 
     public void deletePatientByEmail(String email) {

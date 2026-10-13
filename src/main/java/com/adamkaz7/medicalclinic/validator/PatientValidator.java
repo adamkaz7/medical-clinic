@@ -1,5 +1,6 @@
 package com.adamkaz7.medicalclinic.validator;
 
+import com.adamkaz7.medicalclinic.exception.PatientValidationException;
 import com.adamkaz7.medicalclinic.model.Patient;
 import org.springframework.stereotype.Component;
 
@@ -7,14 +8,14 @@ import org.springframework.stereotype.Component;
 public class PatientValidator {
     public void validatePatient(Patient patient) {
         if (patient == null) {
-            throw new IllegalArgumentException("Patient data is required");
+            throw new PatientValidationException("Patient data is required");
         }
         validateEmail(patient.getEmail());
     }
 
     public void validateEmail(String email) {
         if (email == null || email.isBlank()) {
-            throw new IllegalArgumentException("Email is required");
+            throw new PatientValidationException("Email is required");
         }
     }
 
@@ -26,7 +27,7 @@ public class PatientValidator {
 
     private void validateEmailUnchanged(String email, Patient patient) {
         if (!email.equals(patient.getEmail())) {
-            throw new IllegalArgumentException("Email cannot be changed when updating a patient");
+            throw new PatientValidationException("Email cannot be changed when updating a patient");
         }
     }
 }
