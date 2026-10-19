@@ -52,9 +52,8 @@ public class PatientService {
     public PatientDto updatePatientByEmail(String email, UpdatePatientCommand command) {
         Patient patient = patientMapper.toEntity(command);
         patientValidator.validateUpdatedPatient(email, patient);
-        return patientRepository.update(patient)
-                .map(patientMapper::toDto)
-                .orElseThrow(() -> new PatientNotFoundException(email));
+        patientRepository.update(patient).orElseThrow(() -> new PatientNotFoundException(email));
+        return patientMapper.toDto(patient);
     }
 
     public void changePatientPassword(String email, String newPassword) {
