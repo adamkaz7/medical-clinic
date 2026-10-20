@@ -35,9 +35,11 @@ public class PatientService {
     public PatientDto addPatient(CreatePatientCommand command) {
         Patient patient = patientMapper.toEntity(command);
         patientValidator.validatePatient(patient);
-        return patientRepository.add(patient)
-                .map(patientMapper::toDto)
-                .orElseThrow(() -> new PatientAlreadyExistsException(patient.getEmail()));
+        patientRepository.add(patient)
+                .ifPresent(existingPatient -> {
+                    throw new PatientAlreadyExistsException(existingPatient.getEmail());
+                });
+        return patientMapper.toDto(patient);
     }
 
     public void deletePatientByEmail(String email) {
@@ -50,9 +52,8 @@ public class PatientService {
     public PatientDto updatePatientByEmail(String email, UpdatePatientCommand command) {
         Patient patient = patientMapper.toEntity(command);
         patientValidator.validateUpdatedPatient(email, patient);
-        return patientRepository.update(patient)
-                .map(patientMapper::toDto)
-                .orElseThrow(() -> new PatientNotFoundException(email));
+        patientRepository.update(patient).orElseThrow(() -> new PatientNotFoundException(email));
+        return patientMapper.toDto(patient);
     }
 
     public void changePatientPassword(String email, String newPassword) {
