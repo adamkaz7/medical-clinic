@@ -11,7 +11,6 @@ import com.adamkaz7.medicalclinic.repository.PatientRepository;
 import com.adamkaz7.medicalclinic.validator.PatientValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDate;
@@ -214,23 +213,26 @@ public class PatientServiceTest {
     void changePatientPassword_PatientExists_UpdatesPassword() {
         // given
         String newPassword = "new-password";
-        ArgumentCaptor<Patient> patientCaptor = ArgumentCaptor.forClass(Patient.class);
-        when(patientRepository.findByEmail(EMAIL)).thenReturn(Optional.of(patient));
-        when(patientRepository.update(any(Patient.class))).thenReturn(Optional.of(patient));
+        Patient existingPatient = mock(Patient.class);
+        Patient updatedPatient = new Patient(
+                EMAIL,
+                newPassword,
+                "TEST08",
+                "John",
+                "Doe",
+                "123456789",
+                LocalDate.of(2000, 1, 10)
+        );
+        when(patientRepository.findByEmail(EMAIL)).thenReturn(Optional.of(existingPatient));
+        when(existingPatient.withPassword(newPassword)).thenReturn(updatedPatient);
+        when(patientRepository.update(updatedPatient)).thenReturn(Optional.of(existingPatient));
         // when
         patientService.changePatientPassword(EMAIL, newPassword);
         // then
-        verify(patientRepository).update(patientCaptor.capture());
-        Patient updatedPatient = patientCaptor.getValue();
         assertAll(
                 "Changed patient password",
-                () -> assertEquals(newPassword, updatedPatient.getPassword()),
-                () -> assertEquals(EMAIL, updatedPatient.getEmail()),
-                () -> assertEquals("TEST08", updatedPatient.getIdCardNo()),
-                () -> assertEquals("John", updatedPatient.getFirstName()),
-                () -> assertEquals("Doe", updatedPatient.getLastName()),
-                () -> assertEquals("123456789", updatedPatient.getPhoneNumber()),
-                () -> assertEquals(LocalDate.of(2000, 1, 10), updatedPatient.getBirthday()),
+                () -> verify(existingPatient).withPassword(newPassword),
+                () -> verify(patientRepository).update(updatedPatient),
                 () -> verify(patientValidator).validateEmail(EMAIL)
         );
     }
