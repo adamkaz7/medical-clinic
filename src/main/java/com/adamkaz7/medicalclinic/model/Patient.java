@@ -1,28 +1,51 @@
 package com.adamkaz7.medicalclinic.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.LocalDate;
 
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @ToString
+@Entity
+@Table(name = "patients")
 public class Patient {
-    private final String email;
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long id;
+    @Column(nullable = false, unique = true)
+    private String email;
     @ToString.Exclude
-    private final String password;
-    private final String idCardNo;
-    private final String firstName;
-    private final String lastName;
-    private final String phoneNumber;
-    private final LocalDate birthday;
+    private String password;
+    @Column(name = "ID_CARD", nullable = false, unique = true)
+    private String idCardNo;
+    @Column(name = "FIRST_NAME")
+    private String firstName;
+    @Column(name = "LAST_NAME")
+    private String lastName;
+    @Column(name = "PHONE_NUMBER")
+    private String phoneNumber;
+    @Column
+    private LocalDate birthday;
+
+    public Patient(
+            String email,
+            String password,
+            String idCardNo,
+            String firstName,
+            String lastName,
+            String phoneNumber,
+            LocalDate birthday
+    ) {
+        this(null, email, password, idCardNo, firstName, lastName, phoneNumber, birthday);
+    }
 
     public Patient withPassword(String newPassword) {
         return new Patient(
+                id,
                 email,
                 newPassword,
                 idCardNo,
@@ -31,5 +54,14 @@ public class Patient {
                 phoneNumber,
                 birthday
         );
+    }
+
+    public void updatePatient(Patient updatedPatient) {
+        this.password = updatedPatient.getPassword();
+        this.idCardNo = updatedPatient.getIdCardNo();
+        this.firstName = updatedPatient.getFirstName();
+        this.lastName = updatedPatient.getLastName();
+        this.phoneNumber = updatedPatient.getPhoneNumber();
+        this.birthday = updatedPatient.getBirthday();
     }
 }

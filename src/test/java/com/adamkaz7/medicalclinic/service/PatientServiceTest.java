@@ -76,7 +76,7 @@ public class PatientServiceTest {
                 LocalDate.of(2000, 1, 10)
         );
         when(patientMapper.toEntity(command)).thenReturn(patient);
-        when(patientRepository.add(patient)).thenReturn(Optional.empty());
+        when(patientRepository.save(any(Patient.class))).thenReturn(patient);
         when(patientMapper.toDto(patient)).thenReturn(expectedDto);
         //when
         PatientDto result = patientService.addPatient(command);
@@ -84,7 +84,7 @@ public class PatientServiceTest {
         assertAll(
                 "Create patient",
                 () -> assertEquals(expectedDto, result),
-                () -> verify(patientRepository).add(patient),
+                () -> verify(patientRepository).save(patient),
                 () -> verify(patientValidator).validatePatient(patient)
         );
     }
@@ -182,15 +182,16 @@ public class PatientServiceTest {
                 LocalDate.of(2000, 1, 10)
         );
         when(patientMapper.toEntity(command)).thenReturn(updatedPatient);
-        when(patientRepository.update(updatedPatient)).thenReturn(Optional.of(patient));
-        when(patientMapper.toDto(updatedPatient)).thenReturn(updatedDto);
+        when(patientRepository.findByEmail(EMAIL)).thenReturn(Optional.of(patient));
+        when(patientRepository.save(patient)).thenReturn(patient);
+        when(patientMapper.toDto(patient)).thenReturn(updatedDto);
         // when
         PatientDto result = patientService.updatePatientByEmail(EMAIL, command);
         // then
         assertAll(
                 "Updated patient",
                 () -> assertEquals(updatedDto, result),
-                () -> verify(patientRepository).update(updatedPatient),
+                () -> verify(patientRepository).save(patient),
                 () -> verify(patientValidator).validateUpdatedPatient(EMAIL, updatedPatient)
         );
     }
@@ -198,14 +199,14 @@ public class PatientServiceTest {
     @Test
     void deletePatientByEmail_PatientExists_DeletePatient() {
         // given
-        when(patientRepository.deleteByEmail(EMAIL)).thenReturn(true);
+        when(patientRepository.findByEmail(EMAIL)).thenReturn(Optional.of(patient));
         // when
         patientService.deletePatientByEmail(EMAIL);
         // then
         assertAll(
                 "Delete patient",
                 () -> verify(patientValidator).validateEmail(EMAIL),
-                () -> verify(patientRepository).deleteByEmail(EMAIL)
+                () -> verify(patientRepository).delete(patient)
         );
     }
 
@@ -225,14 +226,13 @@ public class PatientServiceTest {
         );
         when(patientRepository.findByEmail(EMAIL)).thenReturn(Optional.of(existingPatient));
         when(existingPatient.withPassword(newPassword)).thenReturn(updatedPatient);
-        when(patientRepository.update(updatedPatient)).thenReturn(Optional.of(existingPatient));
         // when
         patientService.changePatientPassword(EMAIL, newPassword);
         // then
         assertAll(
                 "Changed patient password",
                 () -> verify(existingPatient).withPassword(newPassword),
-                () -> verify(patientRepository).update(updatedPatient),
+                () -> verify(patientRepository).save(updatedPatient),
                 () -> verify(patientValidator).validateEmail(EMAIL)
         );
     }
@@ -264,7 +264,7 @@ public class PatientServiceTest {
                 LocalDate.of(2000, 1, 10)
         );
         when(patientMapper.toEntity(command)).thenReturn(patient);
-        when(patientRepository.add(patient)).thenReturn(Optional.of(patient));
+    when(patientRepository.existsByEmail(EMAIL)).thenReturn(true);
         // when & then
         PatientAlreadyExistsException exception = assertThrows(PatientAlreadyExistsException.class,
                 () -> patientService.addPatient(command));
@@ -288,7 +288,7 @@ public class PatientServiceTest {
                 LocalDate.of(2000, 1, 10)
         );
         when(patientMapper.toEntity(command)).thenReturn(patient);
-        when(patientRepository.update(patient)).thenReturn(Optional.empty());
+        when(patientRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
         // when & then
         PatientNotFoundException exception = assertThrows(PatientNotFoundException.class,
                 () -> patientService.updatePatientByEmail(EMAIL, command));
@@ -302,15 +302,14 @@ public class PatientServiceTest {
     @Test
     void deletePatientByEmail_PatientDoesNotExist_ThrowsPatientNotFoundException() {
         // given
-        when(patientRepository.deleteByEmail(EMAIL)).thenReturn(false);
+        when(patientRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
         // when & then
         PatientNotFoundException exception = assertThrows(PatientNotFoundException.class,
                 () -> patientService.deletePatientByEmail(EMAIL));
         assertAll(
                 "Patient to delete not found",
                 () -> assertEquals("Patient with email " + EMAIL + " was not found", exception.getMessage()),
-                () -> assertEquals(HttpStatus.NOT_FOUND, exception.getStatus()),
-                () -> verify(patientRepository).deleteByEmail(EMAIL)
+                () -> assertEquals(HttpStatus.NOT_FOUND, exception.getStatus())
         );
     }
 
@@ -326,24 +325,7 @@ public class PatientServiceTest {
                 "Patient for password change not found",
                 () -> assertEquals("Patient with email " + EMAIL + " was not found", exception.getMessage()),
                 () -> assertEquals(HttpStatus.NOT_FOUND, exception.getStatus()),
-                () -> verify(patientRepository, never()).update(any(Patient.class))
-        );
-    }
-
-    @Test
-    void changePatientPassword_UpdateReturnsEmpty_ThrowsPatientNotFoundException() {
-        // given
-        String newPassword = "new-password";
-        when(patientRepository.findByEmail(EMAIL)).thenReturn(Optional.of(patient));
-        when(patientRepository.update(any(Patient.class))).thenReturn(Optional.empty());
-        // when & then
-        PatientNotFoundException exception = assertThrows(PatientNotFoundException.class,
-                () -> patientService.changePatientPassword(EMAIL, newPassword));
-        assertAll(
-                "Patient not found during password update",
-                () -> assertEquals("Patient with email " + EMAIL + " was not found", exception.getMessage()),
-                () -> assertEquals(HttpStatus.NOT_FOUND, exception.getStatus()),
-                () -> verify(patientRepository).update(any(Patient.class))
+                () -> verify(patientRepository, never()).save(any(Patient.class))
         );
     }
 }
