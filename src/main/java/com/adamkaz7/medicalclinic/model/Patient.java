@@ -1,7 +1,18 @@
 package com.adamkaz7.medicalclinic.model;
 
-import jakarta.persistence.*;
-import lombok.*;
+import com.adamkaz7.medicalclinic.command.UpdatePatientCommand;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDate;
 
@@ -14,7 +25,7 @@ import java.time.LocalDate;
 @Table(name = "patients")
 public class Patient {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(nullable = false, unique = true)
     private String email;
@@ -28,7 +39,7 @@ public class Patient {
     private String lastName;
     @Column(name = "PHONE_NUMBER")
     private String phoneNumber;
-    @Column
+    @Column(name = "BIRTHDAY")
     private LocalDate birthday;
 
     public Patient(
@@ -43,25 +54,16 @@ public class Patient {
         this(null, email, password, idCardNo, firstName, lastName, phoneNumber, birthday);
     }
 
-    public Patient withPassword(String newPassword) {
-        return new Patient(
-                id,
-                email,
-                newPassword,
-                idCardNo,
-                firstName,
-                lastName,
-                phoneNumber,
-                birthday
-        );
+    public void changePassword(String newPassword) {
+        this.password = newPassword;
     }
 
-    public void updatePatient(Patient updatedPatient) {
-        this.password = updatedPatient.getPassword();
-        this.idCardNo = updatedPatient.getIdCardNo();
-        this.firstName = updatedPatient.getFirstName();
-        this.lastName = updatedPatient.getLastName();
-        this.phoneNumber = updatedPatient.getPhoneNumber();
-        this.birthday = updatedPatient.getBirthday();
+    public void updatePatient(UpdatePatientCommand command) {
+        this.password = command.password();
+        this.idCardNo = command.idCardNo();
+        this.firstName = command.firstName();
+        this.lastName = command.lastName();
+        this.phoneNumber = command.phoneNumber();
+        this.birthday = command.birthday();
     }
 }
