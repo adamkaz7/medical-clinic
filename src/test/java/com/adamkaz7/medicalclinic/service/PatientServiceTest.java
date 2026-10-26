@@ -85,7 +85,7 @@ public class PatientServiceTest {
                 "Create patient",
                 () -> assertEquals(expectedDto, result),
                 () -> verify(patientRepository).save(patient),
-                () -> verify(patientValidator).validatePatient(patient)
+                () -> verify(patientValidator).validateCreatePatientCommand(command)
         );
     }
 
@@ -164,15 +164,6 @@ public class PatientServiceTest {
                 "555666777",
                 LocalDate.of(2000, 1, 10)
         );
-        Patient updatedPatient = new Patient(
-                EMAIL,
-                "test-password",
-                "TEST08",
-                "John",
-                "Doe",
-                "555666777",
-                LocalDate.of(2000, 1, 10)
-        );
         PatientDto updatedDto = new PatientDto(
                 EMAIL,
                 "TEST08",
@@ -181,7 +172,6 @@ public class PatientServiceTest {
                 "555666777",
                 LocalDate.of(2000, 1, 10)
         );
-        when(patientMapper.toEntity(command)).thenReturn(updatedPatient);
         when(patientRepository.findByEmail(EMAIL)).thenReturn(Optional.of(patient));
         when(patientRepository.save(patient)).thenReturn(patient);
         when(patientMapper.toDto(patient)).thenReturn(updatedDto);
@@ -192,7 +182,7 @@ public class PatientServiceTest {
                 "Updated patient",
                 () -> assertEquals(updatedDto, result),
                 () -> verify(patientRepository).save(patient),
-                () -> verify(patientValidator).validateUpdatedPatient(EMAIL, updatedPatient)
+                () -> verify(patientValidator).validateUpdatePatientCommand(EMAIL, command)
         );
     }
 
@@ -214,25 +204,14 @@ public class PatientServiceTest {
     void changePatientPassword_PatientExists_UpdatesPassword() {
         // given
         String newPassword = "new-password";
-        Patient existingPatient = mock(Patient.class);
-        Patient updatedPatient = new Patient(
-                EMAIL,
-                newPassword,
-                "TEST08",
-                "John",
-                "Doe",
-                "123456789",
-                LocalDate.of(2000, 1, 10)
-        );
-        when(patientRepository.findByEmail(EMAIL)).thenReturn(Optional.of(existingPatient));
-        when(existingPatient.withPassword(newPassword)).thenReturn(updatedPatient);
+        when(patientRepository.findByEmail(EMAIL)).thenReturn(Optional.of(patient));
         // when
         patientService.changePatientPassword(EMAIL, newPassword);
         // then
         assertAll(
                 "Changed patient password",
-                () -> verify(existingPatient).withPassword(newPassword),
-                () -> verify(patientRepository).save(updatedPatient),
+                () -> assertEquals(newPassword, patient.getPassword()),
+                () -> verify(patientRepository).save(patient),
                 () -> verify(patientValidator).validateEmail(EMAIL)
         );
     }
