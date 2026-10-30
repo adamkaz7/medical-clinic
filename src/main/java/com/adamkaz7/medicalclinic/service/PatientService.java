@@ -50,12 +50,14 @@ public class PatientService {
     public PatientDto updatePatientByEmail(String email, UpdatePatientCommand command) {
         patientValidator.validateUpdatePatientCommand(email, command);
         Patient patient = findPatientByEmail(email);
+        patientValidator.validateIdCardNoUnchanged(patient.getIdCardNo(), command.idCardNo());
         patient.updatePatient(command);
         Patient savedPatient = patientRepository.save(patient);
         return patientMapper.toDto(savedPatient);
     }
 
     public void changePatientPassword(String email, String newPassword) {
+        patientValidator.validatePassword(newPassword);
         Patient patient = findPatientByEmail(email);
         patient.changePassword(newPassword);
         patientRepository.save(patient);

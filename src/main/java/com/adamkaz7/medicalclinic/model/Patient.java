@@ -60,7 +60,6 @@ public class Patient {
 
     public void updatePatient(UpdatePatientCommand command) {
         this.password = command.password();
-        this.idCardNo = command.idCardNo();
         this.firstName = command.firstName();
         this.lastName = command.lastName();
         this.phoneNumber = command.phoneNumber();
