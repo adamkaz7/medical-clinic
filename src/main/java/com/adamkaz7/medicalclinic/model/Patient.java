@@ -1,12 +1,7 @@
 package com.adamkaz7.medicalclinic.model;
 
 import com.adamkaz7.medicalclinic.command.UpdatePatientCommand;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,6 +36,9 @@ public class Patient {
     private String phoneNumber;
     @Column(name = "BIRTHDAY")
     private LocalDate birthday;
+    @OneToOne
+    @JoinColumn(name = "user_id", unique = true)
+    private User user;
 
     public Patient(
             String email,
@@ -51,7 +49,7 @@ public class Patient {
             String phoneNumber,
             LocalDate birthday
     ) {
-        this(null, email, password, idCardNo, firstName, lastName, phoneNumber, birthday);
+        this(null, email, password, idCardNo, firstName, lastName, phoneNumber, birthday, null);
     }
 
     public void changePassword(String newPassword) {
@@ -64,5 +62,9 @@ public class Patient {
         this.lastName = command.lastName();
         this.phoneNumber = command.phoneNumber();
         this.birthday = command.birthday();
+    }
+
+    public void assignUser(User user) {
+        this.user = user;
     }
 }
