@@ -5,6 +5,7 @@ import com.adamkaz7.medicalclinic.command.UpdatePatientCommand;
 import com.adamkaz7.medicalclinic.dto.PatientDto;
 import com.adamkaz7.medicalclinic.exception.PatientAlreadyExistsException;
 import com.adamkaz7.medicalclinic.exception.PatientNotFoundException;
+import com.adamkaz7.medicalclinic.exception.PatientValidationException;
 import com.adamkaz7.medicalclinic.mapper.PatientMapper;
 import com.adamkaz7.medicalclinic.model.Patient;
 import com.adamkaz7.medicalclinic.repository.PatientRepository;
@@ -76,16 +77,15 @@ public class PatientServiceTest {
                 LocalDate.of(2000, 1, 10)
         );
         when(patientMapper.toEntity(command)).thenReturn(patient);
-        when(patientRepository.add(patient)).thenReturn(Optional.empty());
+        when(patientRepository.save(any(Patient.class))).thenReturn(patient);
         when(patientMapper.toDto(patient)).thenReturn(expectedDto);
         //when
         PatientDto result = patientService.addPatient(command);
         //then
         assertAll(
-                "Create patient",
                 () -> assertEquals(expectedDto, result),
-                () -> verify(patientRepository).add(patient),
-                () -> verify(patientValidator).validatePatient(patient)
+                () -> verify(patientRepository).save(patient),
+                () -> verify(patientValidator).validateCreatePatientCommand(command)
         );
     }
 
@@ -98,7 +98,6 @@ public class PatientServiceTest {
         PatientDto result = patientService.getPatientByEmail(EMAIL);
         // then
         assertAll(
-                "Retrieved patient",
                 () -> assertEquals(expectedDto, result),
                 () -> verify(patientValidator).validateEmail(EMAIL)
         );
@@ -131,7 +130,6 @@ public class PatientServiceTest {
         List<PatientDto> result = patientService.getAllPatients();
         // then
         assertAll(
-                "Retrieved patients",
                 () -> assertEquals(2, result.size()),
                 () -> assertTrue(result.contains(expectedDto)),
                 () -> assertTrue(result.contains(secondDto))
@@ -146,7 +144,6 @@ public class PatientServiceTest {
         List<PatientDto> result = patientService.getAllPatients();
         // then
         assertAll(
-                "Empty patient list",
                 () -> assertNotNull(result),
                 () -> assertTrue(result.isEmpty())
         );
@@ -155,16 +152,8 @@ public class PatientServiceTest {
     @Test
     void updatePatientByEmail_PatientExists_ReturnsUpdatedPatientDto() {
         // given
+        patientService = new PatientService(patientRepository, patientMapper, new PatientValidator());
         UpdatePatientCommand command = new UpdatePatientCommand(
-                EMAIL,
-                "test-password",
-                "TEST08",
-                "John",
-                "Doe",
-                "555666777",
-                LocalDate.of(2000, 1, 10)
-        );
-        Patient updatedPatient = new Patient(
                 EMAIL,
                 "test-password",
                 "TEST08",
@@ -181,31 +170,31 @@ public class PatientServiceTest {
                 "555666777",
                 LocalDate.of(2000, 1, 10)
         );
-        when(patientMapper.toEntity(command)).thenReturn(updatedPatient);
-        when(patientRepository.update(updatedPatient)).thenReturn(Optional.of(patient));
-        when(patientMapper.toDto(updatedPatient)).thenReturn(updatedDto);
+        when(patientRepository.findByEmail(EMAIL)).thenReturn(Optional.of(patient));
+        when(patientRepository.save(patient)).thenReturn(patient);
+        when(patientMapper.toDto(patient)).thenReturn(updatedDto);
         // when
         PatientDto result = patientService.updatePatientByEmail(EMAIL, command);
         // then
         assertAll(
-                "Updated patient",
                 () -> assertEquals(updatedDto, result),
-                () -> verify(patientRepository).update(updatedPatient),
-                () -> verify(patientValidator).validateUpdatedPatient(EMAIL, updatedPatient)
+                () -> assertEquals("555666777", patient.getPhoneNumber()),
+                () -> assertEquals(EMAIL, patient.getEmail()),
+                () -> assertEquals("TEST08", patient.getIdCardNo()),
+                () -> verify(patientRepository).save(patient)
         );
     }
 
     @Test
     void deletePatientByEmail_PatientExists_DeletePatient() {
         // given
-        when(patientRepository.deleteByEmail(EMAIL)).thenReturn(true);
+        when(patientRepository.findByEmail(EMAIL)).thenReturn(Optional.of(patient));
         // when
         patientService.deletePatientByEmail(EMAIL);
         // then
         assertAll(
-                "Delete patient",
                 () -> verify(patientValidator).validateEmail(EMAIL),
-                () -> verify(patientRepository).deleteByEmail(EMAIL)
+                () -> verify(patientRepository).delete(patient)
         );
     }
 
@@ -213,26 +202,13 @@ public class PatientServiceTest {
     void changePatientPassword_PatientExists_UpdatesPassword() {
         // given
         String newPassword = "new-password";
-        Patient existingPatient = mock(Patient.class);
-        Patient updatedPatient = new Patient(
-                EMAIL,
-                newPassword,
-                "TEST08",
-                "John",
-                "Doe",
-                "123456789",
-                LocalDate.of(2000, 1, 10)
-        );
-        when(patientRepository.findByEmail(EMAIL)).thenReturn(Optional.of(existingPatient));
-        when(existingPatient.withPassword(newPassword)).thenReturn(updatedPatient);
-        when(patientRepository.update(updatedPatient)).thenReturn(Optional.of(existingPatient));
+        when(patientRepository.findByEmail(EMAIL)).thenReturn(Optional.of(patient));
         // when
         patientService.changePatientPassword(EMAIL, newPassword);
         // then
         assertAll(
-                "Changed patient password",
-                () -> verify(existingPatient).withPassword(newPassword),
-                () -> verify(patientRepository).update(updatedPatient),
+                () -> assertEquals(newPassword, patient.getPassword()),
+                () -> verify(patientRepository).save(patient),
                 () -> verify(patientValidator).validateEmail(EMAIL)
         );
     }
@@ -245,7 +221,6 @@ public class PatientServiceTest {
         PatientNotFoundException exception = assertThrows(PatientNotFoundException.class,
                 () -> patientService.getPatientByEmail(EMAIL));
         assertAll(
-                "Patient not found",
                 () -> assertEquals("Patient with email " + EMAIL + " was not found", exception.getMessage()),
                 () -> assertEquals(HttpStatus.NOT_FOUND, exception.getStatus())
         );
@@ -264,12 +239,11 @@ public class PatientServiceTest {
                 LocalDate.of(2000, 1, 10)
         );
         when(patientMapper.toEntity(command)).thenReturn(patient);
-        when(patientRepository.add(patient)).thenReturn(Optional.of(patient));
+    when(patientRepository.existsByEmail(EMAIL)).thenReturn(true);
         // when & then
         PatientAlreadyExistsException exception = assertThrows(PatientAlreadyExistsException.class,
                 () -> patientService.addPatient(command));
         assertAll(
-                "Patient already exists",
                 () -> assertEquals("Patient with email " + EMAIL + " already exists", exception.getMessage()),
                 () -> assertEquals(HttpStatus.CONFLICT, exception.getStatus())
         );
@@ -288,12 +262,11 @@ public class PatientServiceTest {
                 LocalDate.of(2000, 1, 10)
         );
         when(patientMapper.toEntity(command)).thenReturn(patient);
-        when(patientRepository.update(patient)).thenReturn(Optional.empty());
+        when(patientRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
         // when & then
         PatientNotFoundException exception = assertThrows(PatientNotFoundException.class,
                 () -> patientService.updatePatientByEmail(EMAIL, command));
         assertAll(
-                "Patient to update not found",
                 () -> assertEquals("Patient with email " + EMAIL + " was not found", exception.getMessage()),
                 () -> assertEquals(HttpStatus.NOT_FOUND, exception.getStatus())
         );
@@ -302,15 +275,13 @@ public class PatientServiceTest {
     @Test
     void deletePatientByEmail_PatientDoesNotExist_ThrowsPatientNotFoundException() {
         // given
-        when(patientRepository.deleteByEmail(EMAIL)).thenReturn(false);
+        when(patientRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
         // when & then
         PatientNotFoundException exception = assertThrows(PatientNotFoundException.class,
                 () -> patientService.deletePatientByEmail(EMAIL));
         assertAll(
-                "Patient to delete not found",
                 () -> assertEquals("Patient with email " + EMAIL + " was not found", exception.getMessage()),
-                () -> assertEquals(HttpStatus.NOT_FOUND, exception.getStatus()),
-                () -> verify(patientRepository).deleteByEmail(EMAIL)
+                () -> assertEquals(HttpStatus.NOT_FOUND, exception.getStatus())
         );
     }
 
@@ -323,27 +294,100 @@ public class PatientServiceTest {
         PatientNotFoundException exception = assertThrows(PatientNotFoundException.class,
                 () -> patientService.changePatientPassword(EMAIL, newPassword));
         assertAll(
-                "Patient for password change not found",
                 () -> assertEquals("Patient with email " + EMAIL + " was not found", exception.getMessage()),
                 () -> assertEquals(HttpStatus.NOT_FOUND, exception.getStatus()),
-                () -> verify(patientRepository, never()).update(any(Patient.class))
+                () -> verify(patientRepository, never()).save(any(Patient.class))
         );
     }
 
     @Test
-    void changePatientPassword_UpdateReturnsEmpty_ThrowsPatientNotFoundException() {
+    void updatePatientByEmail_IdCardNoChanged_ThrowsPatientValidationException() {
         // given
-        String newPassword = "new-password";
-        when(patientRepository.findByEmail(EMAIL)).thenReturn(Optional.of(patient));
-        when(patientRepository.update(any(Patient.class))).thenReturn(Optional.empty());
-        // when & then
-        PatientNotFoundException exception = assertThrows(PatientNotFoundException.class,
-                () -> patientService.changePatientPassword(EMAIL, newPassword));
-        assertAll(
-                "Patient not found during password update",
-                () -> assertEquals("Patient with email " + EMAIL + " was not found", exception.getMessage()),
-                () -> assertEquals(HttpStatus.NOT_FOUND, exception.getStatus()),
-                () -> verify(patientRepository).update(any(Patient.class))
+        patientService = new PatientService(patientRepository, patientMapper, new PatientValidator());
+        UpdatePatientCommand command = new UpdatePatientCommand(
+                EMAIL,
+                "test-password",
+                "TEST09",
+                "John",
+                "Doe",
+                "111222333",
+                LocalDate.of(2000, 1, 10)
         );
+        when(patientRepository.findByEmail(EMAIL)).thenReturn(Optional.of(patient));
+        // when & then
+        PatientValidationException exception = assertThrows(
+                PatientValidationException.class,
+                () -> patientService.updatePatientByEmail(EMAIL, command)
+        );
+        assertAll(
+                () -> assertEquals("Id card number cannot be changed when updating a patient",
+                        exception.getMessage()),
+                () -> assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus()),
+                () -> assertEquals("TEST08", patient.getIdCardNo()),
+                () -> assertEquals("123456789", patient.getPhoneNumber()),
+                () -> verify(patientRepository, never()).save(any(Patient.class))
+        );
+    }
+
+    @Test
+    void changePatientPassword_PasswordIsNull_ThrowsPatientValidationException() {
+        // given
+        patientService = new PatientService(patientRepository, patientMapper, new PatientValidator());
+        // when & then
+        PatientValidationException exception = assertThrows(
+                PatientValidationException.class,
+                () -> patientService.changePatientPassword(EMAIL, null));
+        assertAll(
+                () -> assertEquals("Password is required", exception.getMessage()),
+                () -> assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus()),
+                () -> assertEquals("test-password", patient.getPassword()),
+                () -> verify(patientRepository, never()).save(any(Patient.class))
+        );
+    }
+
+    @Test
+    void updatePatientByEmail_AnyFieldIsNull_ThrowsPatientValidationException() {
+        // given
+        patientService = new PatientService(patientRepository, patientMapper, new PatientValidator());
+        LocalDate birthday = LocalDate.of(2000, 1, 10);
+        List<UpdatePatientCommand> commands = List.of(
+                new UpdatePatientCommand(null, "test-password", "TEST08", "Jan",
+                        "Kowalski", "111222333", birthday),
+                new UpdatePatientCommand(EMAIL, null, "TEST08", "Jan",
+                        "Kowalski", "111222333", birthday),
+                new UpdatePatientCommand(EMAIL, "test-password", null, "Jan",
+                        "Kowalski", "111222333", birthday),
+                new UpdatePatientCommand(EMAIL, "test-password", "TEST08", null,
+                        "Kowalski", "111222333", birthday),
+                new UpdatePatientCommand(EMAIL, "test-password", "TEST08", "Jan",
+                        null, "111222333", birthday),
+                new UpdatePatientCommand(EMAIL, "test-password", "TEST08", "Jan",
+                        "Kowalski", null, birthday),
+                new UpdatePatientCommand(EMAIL, "test-password", "TEST08", "Jan",
+                        "Kowalski", "111222333", null)
+        );
+        List<String> expectedMessages = List.of(
+                "Email is required",
+                "Password is required",
+                "ID card number is required",
+                "First name is required",
+                "Last name is required",
+                "Phone number is required",
+                "Birthday is required"
+        );
+        // when & then
+        for (int i = 0; i < commands.size(); i++) {
+            UpdatePatientCommand command = commands.get(i);
+            String expectedMessage = expectedMessages.get(i);
+            PatientValidationException exception = assertThrows(
+                    PatientValidationException.class,
+                    () -> patientService.updatePatientByEmail(EMAIL, command)
+            );
+            assertAll(
+                    () -> assertEquals(expectedMessage, exception.getMessage()),
+                    () -> assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus())
+            );
+        }
+        verify(patientRepository, never()).save(any(Patient.class));
     }
 }

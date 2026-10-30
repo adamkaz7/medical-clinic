@@ -1,16 +1,29 @@
 package com.adamkaz7.medicalclinic.validator;
 
+import com.adamkaz7.medicalclinic.command.CreatePatientCommand;
+import com.adamkaz7.medicalclinic.command.UpdatePatientCommand;
 import com.adamkaz7.medicalclinic.exception.PatientValidationException;
-import com.adamkaz7.medicalclinic.model.Patient;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PatientValidator {
-    public void validatePatient(Patient patient) {
-        if (patient == null) {
+    public void validateCreatePatientCommand(CreatePatientCommand command) {
+        if (command == null) {
             throw new PatientValidationException("Patient data is required");
         }
-        validateEmail(patient.getEmail());
+        validateEmail(command.email());
+    }
+
+    public void validateUpdatePatientCommand(String email, UpdatePatientCommand command) {
+        if (command == null) {
+            throw new PatientValidationException("Patient data is required");
+        }
+        validateEmail(email);
+        validateEmail(command.email());
+        if (!email.equals(command.email())) {
+            throw new PatientValidationException("Email cannot be changed when updating a patient");
+        }
+        validatePatientData(command);
     }
 
     public void validateEmail(String email) {
@@ -19,15 +32,34 @@ public class PatientValidator {
         }
     }
 
-    public void validateUpdatedPatient(String email, Patient patient) {
-        validateEmail(email);
-        validatePatient(patient);
-        validateEmailUnchanged(email, patient);
+    public void validateIdCardNoUnchanged(String currentIdCardNo, String newIdCardNo) {
+        if (!currentIdCardNo.equals(newIdCardNo)) {
+            throw new PatientValidationException("Id card number cannot be changed when updating a patient");
+        }
     }
 
-    private void validateEmailUnchanged(String email, Patient patient) {
-        if (!email.equals(patient.getEmail())) {
-            throw new PatientValidationException("Email cannot be changed when updating a patient");
+    private void validatePatientData(UpdatePatientCommand command) {
+        validatePassword(command.password());
+        if (command.idCardNo() == null) {
+            throw new PatientValidationException("ID card number is required");
+        }
+        if (command.firstName() == null) {
+            throw new PatientValidationException("First name is required");
+        }
+        if (command.lastName() == null) {
+            throw new PatientValidationException("Last name is required");
+        }
+        if (command.phoneNumber() == null) {
+            throw new PatientValidationException("Phone number is required");
+        }
+        if (command.birthday() == null) {
+            throw new PatientValidationException("Birthday is required");
+        }
+    }
+
+    public void validatePassword(String password) {
+        if (password == null || password.isBlank()) {
+            throw new PatientValidationException("Password is required");
         }
     }
 }
