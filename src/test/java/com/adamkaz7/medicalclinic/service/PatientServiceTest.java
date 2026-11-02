@@ -9,6 +9,7 @@ import com.adamkaz7.medicalclinic.exception.PatientValidationException;
 import com.adamkaz7.medicalclinic.mapper.PatientMapper;
 import com.adamkaz7.medicalclinic.model.Patient;
 import com.adamkaz7.medicalclinic.repository.PatientRepository;
+import com.adamkaz7.medicalclinic.repository.UserRepository;
 import com.adamkaz7.medicalclinic.validator.PatientValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,7 @@ public class PatientServiceTest {
     private static final String EMAIL = "john@example.com";
 
     private PatientRepository patientRepository;
+    private UserRepository userRepository;
     private PatientMapper patientMapper;
     private PatientValidator patientValidator;
     private PatientService patientService;
@@ -44,7 +46,8 @@ public class PatientServiceTest {
         patientRepository = mock(PatientRepository.class);
         patientMapper = mock(PatientMapper.class);
         patientValidator = mock(PatientValidator.class);
-        patientService = new PatientService(patientRepository, patientMapper, patientValidator);
+        userRepository = mock(UserRepository.class);
+        patientService = new PatientService(patientRepository, patientMapper, patientValidator, userRepository);
         patient = new Patient(
                 EMAIL,
                 "test-password",
@@ -152,7 +155,7 @@ public class PatientServiceTest {
     @Test
     void updatePatientByEmail_PatientExists_ReturnsUpdatedPatientDto() {
         // given
-        patientService = new PatientService(patientRepository, patientMapper, new PatientValidator());
+        patientService = new PatientService(patientRepository, patientMapper, new PatientValidator(), userRepository);
         UpdatePatientCommand command = new UpdatePatientCommand(
                 EMAIL,
                 "test-password",
@@ -303,7 +306,7 @@ public class PatientServiceTest {
     @Test
     void updatePatientByEmail_IdCardNoChanged_ThrowsPatientValidationException() {
         // given
-        patientService = new PatientService(patientRepository, patientMapper, new PatientValidator());
+        patientService = new PatientService(patientRepository, patientMapper, new PatientValidator(), userRepository);
         UpdatePatientCommand command = new UpdatePatientCommand(
                 EMAIL,
                 "test-password",
@@ -332,7 +335,7 @@ public class PatientServiceTest {
     @Test
     void changePatientPassword_PasswordIsNull_ThrowsPatientValidationException() {
         // given
-        patientService = new PatientService(patientRepository, patientMapper, new PatientValidator());
+        patientService = new PatientService(patientRepository, patientMapper, new PatientValidator(), userRepository);
         // when & then
         PatientValidationException exception = assertThrows(
                 PatientValidationException.class,
@@ -348,7 +351,7 @@ public class PatientServiceTest {
     @Test
     void updatePatientByEmail_AnyFieldIsNull_ThrowsPatientValidationException() {
         // given
-        patientService = new PatientService(patientRepository, patientMapper, new PatientValidator());
+        patientService = new PatientService(patientRepository, patientMapper, new PatientValidator(), userRepository);
         LocalDate birthday = LocalDate.of(2000, 1, 10);
         List<UpdatePatientCommand> commands = List.of(
                 new UpdatePatientCommand(null, "test-password", "TEST08", "Jan",

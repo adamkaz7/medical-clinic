@@ -17,7 +17,7 @@ import java.time.LocalDate;
 @Builder
 @ToString
 @Entity
-@Table(name = "patients")
+@Table(name = "PATIENTS")
 public class Patient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,7 +37,7 @@ public class Patient {
     @Column(name = "BIRTHDAY")
     private LocalDate birthday;
     @OneToOne
-    @JoinColumn(name = "user_id", unique = true)
+    @JoinColumn(name = "USER_ID", unique = true)
     private User user;
 
     public Patient(
@@ -57,6 +57,7 @@ public class Patient {
     }
 
     public void updatePatient(UpdatePatientCommand command) {
+        this.email = command.email();
         this.password = command.password();
         this.firstName = command.firstName();
         this.lastName = command.lastName();

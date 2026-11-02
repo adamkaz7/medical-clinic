@@ -24,10 +24,4 @@ public class UserController {
     public void deleteUser(@PathVariable Long userId) {
         userService.deleteUserById(userId);
     }
-
-    @PatchMapping("/{userId}/patient/{email}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void assignPatientToUser(@PathVariable Long userId, @PathVariable String email) {
-        userService.assignPatientToUser(userId, email);
-    }
 }

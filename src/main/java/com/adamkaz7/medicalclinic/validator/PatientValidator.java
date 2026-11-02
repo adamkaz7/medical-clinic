@@ -3,6 +3,7 @@ package com.adamkaz7.medicalclinic.validator;
 import com.adamkaz7.medicalclinic.command.CreatePatientCommand;
 import com.adamkaz7.medicalclinic.command.UpdatePatientCommand;
 import com.adamkaz7.medicalclinic.exception.PatientValidationException;
+import com.adamkaz7.medicalclinic.model.Patient;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -20,9 +21,6 @@ public class PatientValidator {
         }
         validateEmail(email);
         validateEmail(command.email());
-        if (!email.equals(command.email())) {
-            throw new PatientValidationException("Email cannot be changed when updating a patient");
-        }
         validatePatientData(command);
     }
 
@@ -60,6 +58,15 @@ public class PatientValidator {
     public void validatePassword(String password) {
         if (password == null || password.isBlank()) {
             throw new PatientValidationException("Password is required");
+        }
+    }
+
+    public void validateUserAssignment(Patient patient, boolean userAlreadyAssigned) {
+        if (patient.getUser() != null) {
+            throw new PatientValidationException("Patient is already assigned to a user");
+        }
+        if (userAlreadyAssigned) {
+            throw new PatientValidationException("User is already assigned to a patient");
         }
     }
 }

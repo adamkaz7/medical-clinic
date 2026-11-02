@@ -55,4 +55,10 @@ public class PatientController {
     ) {
         patientService.changePatientPassword(email, command.password());
     }
+
+    @PatchMapping("/{email}/user/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void assignUserToPatient(@PathVariable String email, @PathVariable Long userId) {
+        patientService.assignUserToPatient(email, userId);
+    }
 }
