@@ -1,7 +1,7 @@
 package com.adamkaz7.medicalclinic.validator;
 
 import com.adamkaz7.medicalclinic.command.CreateUserCommand;
-import com.adamkaz7.medicalclinic.exception.UserValidationException;
+import com.adamkaz7.medicalclinic.exception.user.UserValidationException;
 import org.springframework.stereotype.Component;
 
 @Component
