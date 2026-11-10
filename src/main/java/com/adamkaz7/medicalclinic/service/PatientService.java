@@ -33,34 +33,32 @@ public class PatientService {
     }
 
     public PatientDto addPatient(CreatePatientCommand command) {
+        patientValidator.validateCreatePatientCommand(command);
+        if (patientRepository.existsByEmail(command.email())) {
+            throw new PatientAlreadyExistsException(command.email());
+        }
         Patient patient = patientMapper.toEntity(command);
-        patientValidator.validatePatient(patient);
-        patientRepository.add(patient)
-                .ifPresent(existingPatient -> {
-                    throw new PatientAlreadyExistsException(existingPatient.getEmail());
-                });
-        return patientMapper.toDto(patient);
+        Patient savedPatient = patientRepository.save(patient);
+        return patientMapper.toDto(savedPatient);
     }
 
     public void deletePatientByEmail(String email) {
-        patientValidator.validateEmail(email);
-        if (!patientRepository.deleteByEmail(email)) {
-            throw new PatientNotFoundException(email);
-        }
+        Patient patient = findPatientByEmail(email);
+        patientRepository.delete(patient);
     }
 
     public PatientDto updatePatientByEmail(String email, UpdatePatientCommand command) {
-        Patient patient = patientMapper.toEntity(command);
-        patientValidator.validateUpdatedPatient(email, patient);
-        patientRepository.update(patient).orElseThrow(() -> new PatientNotFoundException(email));
-        return patientMapper.toDto(patient);
+        patientValidator.validateUpdatePatientCommand(email, command);
+        Patient patient = findPatientByEmail(email);
+        patient.updatePatient(command);
+        Patient savedPatient = patientRepository.save(patient);
+        return patientMapper.toDto(savedPatient);
     }
 
     public void changePatientPassword(String email, String newPassword) {
         Patient patient = findPatientByEmail(email);
-        Patient updatedPatient = patient.withPassword(newPassword);
-        patientRepository.update(updatedPatient)
-                .orElseThrow(() -> new PatientNotFoundException(email));
+        patient.changePassword(newPassword);
+        patientRepository.save(patient);
     }
 
     private Patient findPatientByEmail(String email) {
