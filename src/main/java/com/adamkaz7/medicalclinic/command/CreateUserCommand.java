@@ -1,4 +1,10 @@
 package com.adamkaz7.medicalclinic.command;
 
-public record CreateUserCommand(String email, String password, String firstName, String lastName) {
+import jakarta.validation.constraints.NotBlank;
+
+public record CreateUserCommand(
+        @NotBlank String email,
+        @NotBlank String password,
+        @NotBlank String firstName,
+        @NotBlank String lastName) {
 }

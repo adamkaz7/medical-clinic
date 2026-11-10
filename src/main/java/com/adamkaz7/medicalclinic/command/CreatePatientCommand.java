@@ -1,14 +1,14 @@
 package com.adamkaz7.medicalclinic.command;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 import java.time.LocalDate;
 
 public record CreatePatientCommand(
-        String email,
-        String password,
-        String idCardNo,
-        String firstName,
-        String lastName,
-        String phoneNumber,
-        LocalDate birthday
+        @NotNull Long userId,
+        @NotBlank String idCardNo,
+        @NotBlank String phoneNumber,
+        @NotNull LocalDate birthday
 ) {
 }

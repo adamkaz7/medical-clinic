@@ -9,7 +9,6 @@ import com.adamkaz7.medicalclinic.mapper.UserMapper;
 import com.adamkaz7.medicalclinic.model.User;
 import com.adamkaz7.medicalclinic.repository.PatientRepository;
 import com.adamkaz7.medicalclinic.repository.UserRepository;
-import com.adamkaz7.medicalclinic.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,17 +17,20 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final UserValidator userValidator;
     private final PatientRepository patientRepository;
 
     public UserDto addUser(CreateUserCommand command) {
-        userValidator.validateCreateUserCommand(command);
         if (userRepository.existsByEmail(command.email())) {
             throw new UserAlreadyExistsException(command.email());
         }
         User user = userMapper.toEntity(command);
-        User savedUser = userRepository.save(user);
-        return userMapper.toDto(savedUser);
+        user = userRepository.save(user);
+        return userMapper.toDto(user);
+    }
+
+    public UserDto getUserById(Long userId) {
+        User user = findUserById(userId);
+        return userMapper.toDto(user);
     }
 
     public void deleteUserById(Long userId) {
@@ -37,6 +39,12 @@ public class UserService {
             throw new UserValidationException("Cannot delete user assigned to a patient");
         }
         userRepository.delete(user);
+    }
+
+    public void changeUserPassword(Long userId, String newPassword) {
+        User user = findUserById(userId);
+        user.changePassword(newPassword);
+        userRepository.save(user);
     }
 
     private User findUserById(Long userId) {

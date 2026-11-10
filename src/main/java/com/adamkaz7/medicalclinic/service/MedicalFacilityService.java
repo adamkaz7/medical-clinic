@@ -8,7 +8,6 @@ import com.adamkaz7.medicalclinic.exception.facility.MedicalFacilityNotFoundExce
 import com.adamkaz7.medicalclinic.mapper.MedicalFacilityMapper;
 import com.adamkaz7.medicalclinic.model.MedicalFacility;
 import com.adamkaz7.medicalclinic.repository.MedicalFacilityRepository;
-import com.adamkaz7.medicalclinic.validator.MedicalFacilityValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,16 +18,14 @@ import java.util.List;
 public class MedicalFacilityService {
     private final MedicalFacilityRepository medicalFacilityRepository;
     private final MedicalFacilityMapper medicalFacilityMapper;
-    private final MedicalFacilityValidator medicalFacilityValidator;
 
     public MedicalFacilityDto addMedicalFacility(CreateMedicalFacilityCommand command) {
-        medicalFacilityValidator.validateMedicalFacilityData(command);
         if (medicalFacilityRepository.existsByName(command.name())) {
             throw new MedicalFacilityAlreadyExistsException(command.name());
         }
         MedicalFacility facility = medicalFacilityMapper.toEntity(command);
-        MedicalFacility savedFacility = medicalFacilityRepository.save(facility);
-        return medicalFacilityMapper.toDto(savedFacility);
+        facility = medicalFacilityRepository.save(facility);
+        return medicalFacilityMapper.toDto(facility);
     }
 
     public List<MedicalFacilityDto> getAllMedicalFacilities() {
@@ -44,14 +41,13 @@ public class MedicalFacilityService {
     }
 
     public MedicalFacilityDto updateMedicalFacility(Long facilityId, UpdateMedicalFacilityCommand command) {
-        medicalFacilityValidator.validateUpdateMedicalFacilityCommand(command);
         MedicalFacility facility = findMedicalFacilityById(facilityId);
         if (!facility.getName().equals(command.name()) && medicalFacilityRepository.existsByName(command.name())) {
             throw new MedicalFacilityAlreadyExistsException(command.name());
         }
         facility.updateMedicalFacility(command);
-        MedicalFacility savedFacility = medicalFacilityRepository.save(facility);
-        return medicalFacilityMapper.toDto(savedFacility);
+        facility = medicalFacilityRepository.save(facility);
+        return medicalFacilityMapper.toDto(facility);
     }
 
     public void deleteMedicalFacility(Long facilityId) {

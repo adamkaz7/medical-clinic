@@ -1,7 +1,14 @@
 package com.adamkaz7.medicalclinic.model;
 
 import com.adamkaz7.medicalclinic.command.UpdatePatientCommand;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,45 +29,17 @@ public class Patient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false, unique = true)
-    private String email;
-    @ToString.Exclude
-    private String password;
     @Column(name = "ID_CARD", nullable = false, unique = true)
     private String idCardNo;
-    @Column(name = "FIRST_NAME")
-    private String firstName;
-    @Column(name = "LAST_NAME")
-    private String lastName;
     @Column(name = "PHONE_NUMBER")
     private String phoneNumber;
     @Column(name = "BIRTHDAY")
     private LocalDate birthday;
     @OneToOne
-    @JoinColumn(name = "USER_ID", unique = true)
+    @JoinColumn(name = "USER_ID", nullable = false, unique = true)
     private User user;
 
-    public Patient(
-            String email,
-            String password,
-            String idCardNo,
-            String firstName,
-            String lastName,
-            String phoneNumber,
-            LocalDate birthday
-    ) {
-        this(null, email, password, idCardNo, firstName, lastName, phoneNumber, birthday, null);
-    }
-
-    public void changePassword(String newPassword) {
-        this.password = newPassword;
-    }
-
     public void updatePatient(UpdatePatientCommand command) {
-        this.email = command.email();
-        this.password = command.password();
-        this.firstName = command.firstName();
-        this.lastName = command.lastName();
         this.phoneNumber = command.phoneNumber();
         this.birthday = command.birthday();
     }
