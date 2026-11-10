@@ -37,7 +37,6 @@ public class PatientService {
     }
 
     public PatientDto addPatient(CreatePatientCommand command) {
-        patientValidator.validateCreatePatientCommand(command);
         User user = userRepository.findById(command.userId())
                 .orElseThrow(() -> new UserNotFoundException(command.userId()));
         patientValidator.validateUserAssignment(
@@ -58,7 +57,6 @@ public class PatientService {
     }
 
     public PatientDto updatePatientByEmail(String email, UpdatePatientCommand command) {
-        patientValidator.validateUpdatePatientCommand(email, command);
         Patient patient = findPatientByEmail(email);
         patientValidator.validateIdCardNoUnchanged(patient.getIdCardNo(), command.idCardNo());
         patient.updatePatient(command);

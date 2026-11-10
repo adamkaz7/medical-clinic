@@ -1,10 +1,13 @@
 package com.adamkaz7.medicalclinic.command;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 import java.time.LocalDate;
 
 public record UpdatePatientCommand(
-        String idCardNo,
-        String phoneNumber,
-        LocalDate birthday
+        @NotBlank  String idCardNo,
+        @NotBlank String phoneNumber,
+        @NotNull LocalDate birthday
 ) {
 }

@@ -1,4 +1,8 @@
 package com.adamkaz7.medicalclinic.command;
 
-public record ChangeDoctorPasswordCommand(String password) {
+import jakarta.validation.constraints.NotBlank;
+
+public record ChangeDoctorPasswordCommand(
+        @NotBlank String password
+) {
 }

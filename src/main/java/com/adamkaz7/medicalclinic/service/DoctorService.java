@@ -25,7 +25,6 @@ public class DoctorService {
     private final MedicalFacilityRepository medicalFacilityRepository;
 
     public DoctorDto addDoctor(CreateDoctorCommand command) {
-        DoctorValidator.validateCreateDoctorCommand(command);
         if (doctorRepository.existsByEmail(command.email())) {
             throw new DoctorAlreadyExistsException(command.email());
         }
@@ -59,14 +58,12 @@ public class DoctorService {
     }
 
     public void changeDoctorPassword(Long doctorId, String newPassword) {
-        DoctorValidator.validatePassword(newPassword);
         Doctor doctor = findDoctorById(doctorId);
         doctor.changePassword(newPassword);
         doctorRepository.save(doctor);
     }
 
     public DoctorDto updateDoctorById(Long doctorId, UpdateDoctorCommand command) {
-        DoctorValidator.validateUpdateDoctorCommand(command);
         Doctor doctor = findDoctorById(doctorId);
         if (!doctor.getEmail().equals(command.email()) && doctorRepository.existsByEmail(command.email())) {
             throw new DoctorAlreadyExistsException(command.email());

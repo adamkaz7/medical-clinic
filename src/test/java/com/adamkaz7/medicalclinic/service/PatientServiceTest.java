@@ -93,8 +93,7 @@ public class PatientServiceTest {
         //then
         assertAll(
                 () -> assertEquals(expectedDto, result),
-                () -> verify(patientRepository).save(patient),
-                () -> verify(patientValidator).validateCreatePatientCommand(command)
+                () -> verify(patientRepository).save(patient)
         );
     }
 
@@ -291,36 +290,5 @@ public class PatientServiceTest {
                 () -> assertEquals("123456789", patient.getPhoneNumber()),
                 () -> verify(patientRepository, never()).save(any(Patient.class))
         );
-    }
-
-    @Test
-    void updatePatientByEmail_AnyFieldIsNull_ThrowsPatientValidationException() {
-        // given
-        patientService = new PatientService(patientRepository, patientMapper, new PatientValidator(), userRepository);
-        LocalDate birthday = LocalDate.of(2000, 1, 10);
-        List<UpdatePatientCommand> commands = List.of(
-                new UpdatePatientCommand(null, "111222333", birthday),
-                new UpdatePatientCommand("TEST08", null, birthday),
-                new UpdatePatientCommand("TEST08", "111222333", null)
-        );
-        List<String> expectedMessages = List.of(
-                "ID card number is required",
-                "Phone number is required",
-                "Birthday is required"
-        );
-        // when & then
-        for (int i = 0; i < commands.size(); i++) {
-            UpdatePatientCommand command = commands.get(i);
-            String expectedMessage = expectedMessages.get(i);
-            PatientValidationException exception = assertThrows(
-                    PatientValidationException.class,
-                    () -> patientService.updatePatientByEmail(EMAIL, command)
-            );
-            assertAll(
-                    () -> assertEquals(expectedMessage, exception.getMessage()),
-                    () -> assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus())
-            );
-        }
-        verify(patientRepository, never()).save(any(Patient.class));
     }
 }

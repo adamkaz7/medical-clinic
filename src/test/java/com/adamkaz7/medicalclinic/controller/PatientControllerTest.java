@@ -6,7 +6,6 @@ import com.adamkaz7.medicalclinic.dto.PatientDto;
 import com.adamkaz7.medicalclinic.dto.UserDto;
 import com.adamkaz7.medicalclinic.exception.patient.PatientAlreadyExistsException;
 import com.adamkaz7.medicalclinic.exception.patient.PatientNotFoundException;
-import com.adamkaz7.medicalclinic.exception.patient.PatientValidationException;
 import com.adamkaz7.medicalclinic.service.PatientService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -204,7 +203,7 @@ public class PatientControllerTest {
     }
 
     @Test
-    void getPatientByEmail_PatientDoesNotExist_RetunNotFound() throws Exception {
+    void getPatientByEmail_PatientDoesNotExist_ReturnNotFound() throws Exception {
         // given
         when(patientService.getPatientByEmail(EMAIL)).thenThrow(new PatientNotFoundException(EMAIL));
         // when & then
@@ -281,30 +280,6 @@ public class PatientControllerTest {
                         )
                 );
         verify(patientService).deletePatientByEmail(EMAIL);
-    }
-
-    @Test
-    void addPatient_ValidationFails_ReturnsBadRequest() throws Exception {
-        // given
-        CreatePatientCommand command = new CreatePatientCommand(
-                null,
-                "TEST08",
-                "123456789",
-                LocalDate.of(2000, 1, 10)
-        );
-        when(patientService.addPatient(command)).thenThrow(new PatientValidationException("User id is required"));
-        // when & then
-        mockMvc.perform(
-                post("/patients")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonMapper.writeValueAsString(command))
-        ).andExpectAll(
-                status().isBadRequest(),
-                content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON),
-                jsonPath("$.status").value(400),
-                jsonPath("$.detail").value("User id is required")
-        );
-        verify(patientService).addPatient(command);
     }
 
     @Test

@@ -9,7 +9,6 @@ import com.adamkaz7.medicalclinic.mapper.UserMapper;
 import com.adamkaz7.medicalclinic.model.User;
 import com.adamkaz7.medicalclinic.repository.PatientRepository;
 import com.adamkaz7.medicalclinic.repository.UserRepository;
-import com.adamkaz7.medicalclinic.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,11 +17,9 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final UserValidator userValidator;
     private final PatientRepository patientRepository;
 
     public UserDto addUser(CreateUserCommand command) {
-        userValidator.validateCreateUserCommand(command);
         if (userRepository.existsByEmail(command.email())) {
             throw new UserAlreadyExistsException(command.email());
         }
@@ -45,7 +42,6 @@ public class UserService {
     }
 
     public void changeUserPassword(Long userId, String newPassword) {
-        userValidator.validatePassword(newPassword);
         User user = findUserById(userId);
         user.changePassword(newPassword);
         userRepository.save(user);

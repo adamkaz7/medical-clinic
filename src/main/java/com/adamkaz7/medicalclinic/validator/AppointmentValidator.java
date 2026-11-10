@@ -1,6 +1,5 @@
 package com.adamkaz7.medicalclinic.validator;
 
-import com.adamkaz7.medicalclinic.command.CreateAppointmentCommand;
 import com.adamkaz7.medicalclinic.exception.appointment.AppointmentAlreadyExistsException;
 import com.adamkaz7.medicalclinic.exception.appointment.AppointmentValidationException;
 import com.adamkaz7.medicalclinic.model.Appointment;
