@@ -6,13 +6,22 @@ import com.adamkaz7.medicalclinic.exception.patient.PatientValidationException;
 import com.adamkaz7.medicalclinic.model.Patient;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+
 @Component
 public class PatientValidator {
     public void validateCreatePatientCommand(CreatePatientCommand command) {
         if (command == null) {
             throw new PatientValidationException("Patient data is required");
         }
-        validateEmail(command.email());
+        if (command.userId() == null) {
+            throw new PatientValidationException("User id is required");
+        }
+        validatePatientData(
+                command.idCardNo(),
+                command.phoneNumber(),
+                command.birthday()
+        );
     }
 
     public void validateUpdatePatientCommand(String email, UpdatePatientCommand command) {
@@ -20,8 +29,11 @@ public class PatientValidator {
             throw new PatientValidationException("Patient data is required");
         }
         validateEmail(email);
-        validateEmail(command.email());
-        validatePatientData(command);
+        validatePatientData(
+                command.idCardNo(),
+                command.phoneNumber(),
+                command.birthday()
+        );
     }
 
     public void validateEmail(String email) {
@@ -36,37 +48,23 @@ public class PatientValidator {
         }
     }
 
-    private void validatePatientData(UpdatePatientCommand command) {
-        validatePassword(command.password());
-        if (command.idCardNo() == null) {
-            throw new PatientValidationException("ID card number is required");
+    public void validateUserAssignment(boolean userAlreadyAssigned) {
+        if (userAlreadyAssigned) {
+            throw new PatientValidationException("User is already assigned to a patient");
         }
-        if (command.firstName() == null) {
-            throw new PatientValidationException("First name is required");
-        }
-        if (command.lastName() == null) {
-            throw new PatientValidationException("Last name is required");
-        }
-        if (command.phoneNumber() == null) {
-            throw new PatientValidationException("Phone number is required");
-        }
-        if (command.birthday() == null) {
+    }
+
+    private void validatePatientData(String idCardNo, String phoneNumber, LocalDate birthday) {
+        validateRequiredField(idCardNo, "ID card number");
+        validateRequiredField(phoneNumber, "Phone number");
+        if (birthday == null) {
             throw new PatientValidationException("Birthday is required");
         }
     }
 
-    public void validatePassword(String password) {
-        if (password == null || password.isBlank()) {
-            throw new PatientValidationException("Password is required");
-        }
-    }
-
-    public void validateUserAssignment(Patient patient, boolean userAlreadyAssigned) {
-        if (patient.getUser() != null) {
-            throw new PatientValidationException("Patient is already assigned to a user");
-        }
-        if (userAlreadyAssigned) {
-            throw new PatientValidationException("User is already assigned to a patient");
+    private void validateRequiredField(String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            throw new PatientValidationException(fieldName + " is required");
         }
     }
 }

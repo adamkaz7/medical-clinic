@@ -27,8 +27,8 @@ public class MedicalFacilityService {
             throw new MedicalFacilityAlreadyExistsException(command.name());
         }
         MedicalFacility facility = medicalFacilityMapper.toEntity(command);
-        MedicalFacility savedFacility = medicalFacilityRepository.save(facility);
-        return medicalFacilityMapper.toDto(savedFacility);
+        facility = medicalFacilityRepository.save(facility);
+        return medicalFacilityMapper.toDto(facility);
     }
 
     public List<MedicalFacilityDto> getAllMedicalFacilities() {
@@ -50,8 +50,8 @@ public class MedicalFacilityService {
             throw new MedicalFacilityAlreadyExistsException(command.name());
         }
         facility.updateMedicalFacility(command);
-        MedicalFacility savedFacility = medicalFacilityRepository.save(facility);
-        return medicalFacilityMapper.toDto(savedFacility);
+        facility = medicalFacilityRepository.save(facility);
+        return medicalFacilityMapper.toDto(facility);
     }
 
     public void deleteMedicalFacility(Long facilityId) {

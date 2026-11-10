@@ -4,7 +4,7 @@ import com.adamkaz7.medicalclinic.exception.MedicalClinicException;
 import org.springframework.http.HttpStatus;
 
 public class PatientAlreadyExistsException extends MedicalClinicException {
-    public PatientAlreadyExistsException(String email) {
-        super("Patient with email " + email + " already exists", HttpStatus.CONFLICT);
+    public PatientAlreadyExistsException(String idCardNo) {
+        super("Patient with id card number " + idCardNo + " already exists", HttpStatus.CONFLICT);
     }
 }

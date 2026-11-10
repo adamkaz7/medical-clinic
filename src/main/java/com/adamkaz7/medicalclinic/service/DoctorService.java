@@ -23,16 +23,15 @@ public class DoctorService {
     private final DoctorRepository doctorRepository;
     private final DoctorMapper doctorMapper;
     private final MedicalFacilityRepository medicalFacilityRepository;
-    private final DoctorValidator doctorValidator;
 
     public DoctorDto addDoctor(CreateDoctorCommand command) {
-        doctorValidator.validateCreateDoctorCommand(command);
+        DoctorValidator.validateCreateDoctorCommand(command);
         if (doctorRepository.existsByEmail(command.email())) {
             throw new DoctorAlreadyExistsException(command.email());
         }
         Doctor doctor = doctorMapper.toEntity(command);
-        Doctor savedDoctor = doctorRepository.save(doctor);
-        return doctorMapper.toDto(savedDoctor);
+        doctor = doctorRepository.save(doctor);
+        return doctorMapper.toDto(doctor);
     }
 
     public List<DoctorDto> getAllDoctors() {
@@ -48,7 +47,7 @@ public class DoctorService {
                 .orElseThrow(() -> new MedicalFacilityNotFoundException(facilityId));
         boolean alreadyAssigned = medicalFacilityRepository
                 .existsByIdAndDoctors_Id(facilityId, doctorId);
-        doctorValidator.validateMedicalFacilityAssignment(alreadyAssigned);
+        DoctorValidator.validateMedicalFacilityAssignment(alreadyAssigned);
         facility.assignDoctor(doctor);
         medicalFacilityRepository.save(facility);
     }
@@ -60,21 +59,21 @@ public class DoctorService {
     }
 
     public void changeDoctorPassword(Long doctorId, String newPassword) {
-        doctorValidator.validatePassword(newPassword);
+        DoctorValidator.validatePassword(newPassword);
         Doctor doctor = findDoctorById(doctorId);
         doctor.changePassword(newPassword);
         doctorRepository.save(doctor);
     }
 
     public DoctorDto updateDoctorById(Long doctorId, UpdateDoctorCommand command) {
-        doctorValidator.validateUpdateDoctorCommand(command);
+        DoctorValidator.validateUpdateDoctorCommand(command);
         Doctor doctor = findDoctorById(doctorId);
         if (!doctor.getEmail().equals(command.email()) && doctorRepository.existsByEmail(command.email())) {
             throw new DoctorAlreadyExistsException(command.email());
         }
         doctor.updateDoctor(command);
-        Doctor savedDoctor = doctorRepository.save(doctor);
-        return doctorMapper.toDto(savedDoctor);
+        doctor = doctorRepository.save(doctor);
+        return doctorMapper.toDto(doctor);
     }
 
     public void deleteDoctor(Long doctorId) {

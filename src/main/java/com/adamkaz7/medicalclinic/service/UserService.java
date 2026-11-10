@@ -27,8 +27,13 @@ public class UserService {
             throw new UserAlreadyExistsException(command.email());
         }
         User user = userMapper.toEntity(command);
-        User savedUser = userRepository.save(user);
-        return userMapper.toDto(savedUser);
+        user = userRepository.save(user);
+        return userMapper.toDto(user);
+    }
+
+    public UserDto getUserById(Long userId) {
+        User user = findUserById(userId);
+        return userMapper.toDto(user);
     }
 
     public void deleteUserById(Long userId) {
@@ -37,6 +42,13 @@ public class UserService {
             throw new UserValidationException("Cannot delete user assigned to a patient");
         }
         userRepository.delete(user);
+    }
+
+    public void changeUserPassword(Long userId, String newPassword) {
+        userValidator.validatePassword(newPassword);
+        User user = findUserById(userId);
+        user.changePassword(newPassword);
+        userRepository.save(user);
     }
 
     private User findUserById(Long userId) {

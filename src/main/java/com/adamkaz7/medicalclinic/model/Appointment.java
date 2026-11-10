@@ -1,15 +1,13 @@
 package com.adamkaz7.medicalclinic.model;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @ToString
 @Entity
 @Table(name = "APPOINTMENTS")
@@ -27,14 +25,6 @@ public class Appointment {
     @ManyToOne
     @JoinColumn(name = "PATIENT_ID")
     private Patient patient;
-
-    public Appointment(Long id, LocalDateTime startTime, LocalDateTime endTime, Doctor doctor, Patient patient) {
-        this.id = id;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.doctor = doctor;
-        this.patient = patient;
-    }
 
     public void assignPatient(Patient patient) {
         this.patient = patient;

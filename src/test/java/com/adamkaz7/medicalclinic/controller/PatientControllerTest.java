@@ -1,9 +1,9 @@
 package com.adamkaz7.medicalclinic.controller;
 
-import com.adamkaz7.medicalclinic.command.ChangePatientPasswordCommand;
 import com.adamkaz7.medicalclinic.command.CreatePatientCommand;
 import com.adamkaz7.medicalclinic.command.UpdatePatientCommand;
 import com.adamkaz7.medicalclinic.dto.PatientDto;
+import com.adamkaz7.medicalclinic.dto.UserDto;
 import com.adamkaz7.medicalclinic.exception.patient.PatientAlreadyExistsException;
 import com.adamkaz7.medicalclinic.exception.patient.PatientNotFoundException;
 import com.adamkaz7.medicalclinic.exception.patient.PatientValidationException;
@@ -26,7 +26,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -35,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(PatientController.class)
 public class PatientControllerTest {
     private static final String EMAIL = "john@example.com";
+    private static final Long USER_ID = 1L;
 
     @Autowired
     private MockMvc mockMvc;
@@ -49,20 +49,16 @@ public class PatientControllerTest {
     @BeforeEach
     void setUp() {
         patientDto = new PatientDto(
-                "john@example.com",
                 "TEST08",
-                "John",
-                "Doe",
                 "123456789",
-                LocalDate.of(2000, 1, 10)
+                LocalDate.of(2000, 1, 10),
+                new UserDto(USER_ID, EMAIL, "John", "Doe")
         );
         secondPatientDto = new PatientDto(
-                "jane@example.com",
                 "TEST09",
-                "Jane",
-                "Smith",
                 "987654321",
-                LocalDate.of(1995, 5, 20)
+                LocalDate.of(1995, 5, 20),
+                new UserDto(2L, "jane@example.com", "Jane", "Smith")
         );
     }
 
@@ -78,15 +74,15 @@ public class PatientControllerTest {
                 content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON),
                 jsonPath("$").isArray(),
                 jsonPath("$.length()").value(2),
-                jsonPath("$[0].email").value("john@example.com"),
+                jsonPath("$[0].user.email").value(EMAIL),
                 jsonPath("$[0].idCardNo").value("TEST08"),
-                jsonPath("$[0].firstName").value("John"),
-                jsonPath("$[0].lastName").value("Doe"),
+                jsonPath("$[0].user.firstName").value("John"),
+                jsonPath("$[0].user.lastName").value("Doe"),
                 jsonPath("$[0].phoneNumber").value("123456789"),
                 jsonPath("$[0].birthday").value("2000-01-10"),
-                jsonPath("$[1].email").value("jane@example.com"),
-                jsonPath("$[0].password").doesNotExist(),
-                jsonPath("$[1].password").doesNotExist()
+                jsonPath("$[1].user.email").value("jane@example.com"),
+                jsonPath("$[0].user.password").doesNotExist(),
+                jsonPath("$[1].user.password").doesNotExist()
         );
         verify(patientService).getAllPatients();
     }
@@ -117,13 +113,13 @@ public class PatientControllerTest {
         result.andExpectAll(
                 status().isOk(),
                 content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON),
-                jsonPath("$.email").value(EMAIL),
+                jsonPath("$.user.email").value(EMAIL),
                 jsonPath("$.idCardNo").value("TEST08"),
-                jsonPath("$.firstName").value("John"),
-                jsonPath("$.lastName").value("Doe"),
+                jsonPath("$.user.firstName").value("John"),
+                jsonPath("$.user.lastName").value("Doe"),
                 jsonPath("$.phoneNumber").value("123456789"),
                 jsonPath("$.birthday").value("2000-01-10"),
-                jsonPath("$.password").doesNotExist()
+                jsonPath("$.user.password").doesNotExist()
         );
         verify(patientService).getPatientByEmail(EMAIL);
     }
@@ -132,11 +128,8 @@ public class PatientControllerTest {
     void addPatient_ValidCommand_ReturnCreated() throws Exception {
         // given
         CreatePatientCommand command = new CreatePatientCommand(
-                EMAIL,
-                "test-password",
+                USER_ID,
                 "TEST08",
-                "John",
-                "Doe",
                 "123456789",
                 LocalDate.of(2000, 1, 10)
         );
@@ -150,13 +143,13 @@ public class PatientControllerTest {
         result.andExpectAll(
                 status().isCreated(),
                 content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON),
-                jsonPath("$.email").value(EMAIL),
+                jsonPath("$.user.email").value(EMAIL),
                 jsonPath("$.idCardNo").value("TEST08"),
-                jsonPath("$.firstName").value("John"),
-                jsonPath("$.lastName").value("Doe"),
                 jsonPath("$.phoneNumber").value("123456789"),
+                jsonPath("$.user.firstName").value("John"),
+                jsonPath("$.user.lastName").value("Doe"),
                 jsonPath("$.birthday").value("2000-01-10"),
-                jsonPath("$.password").doesNotExist()
+                jsonPath("$.user.password").doesNotExist()
         );
         verify(patientService).addPatient(command);
     }
@@ -165,21 +158,15 @@ public class PatientControllerTest {
     void updatePatientByEmail_validCommand_ReturnsOk() throws Exception {
         // given
         UpdatePatientCommand command = new UpdatePatientCommand(
-                EMAIL,
-                "test-password",
                 "TEST08",
-                "John",
-                "Doe",
                 "555666777",
                 LocalDate.of(2000, 1, 10)
         );
         PatientDto updatedDto = new PatientDto(
-                EMAIL,
                 "TEST08",
-                "John",
-                "Doe",
                 "555666777",
-                LocalDate.of(2000, 1, 10)
+                LocalDate.of(2000, 1, 10),
+                patientDto.user()
         );
         when(patientService.updatePatientByEmail(EMAIL, command)).thenReturn(updatedDto);
         // when
@@ -191,13 +178,13 @@ public class PatientControllerTest {
         result.andExpectAll(
                 status().isOk(),
                 content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON),
-                jsonPath("$.email").value(EMAIL),
+                jsonPath("$.user.email").value(EMAIL),
                 jsonPath("$.idCardNo").value("TEST08"),
-                jsonPath("$.firstName").value("John"),
-                jsonPath("$.lastName").value("Doe"),
+                jsonPath("$.user.firstName").value("John"),
+                jsonPath("$.user.lastName").value("Doe"),
                 jsonPath("$.phoneNumber").value("555666777"),
                 jsonPath("$.birthday").value("2000-01-10"),
-                jsonPath("$.password").doesNotExist()
+                jsonPath("$.user.password").doesNotExist()
         );
         verify(patientService).updatePatientByEmail(EMAIL, command);
     }
@@ -217,24 +204,6 @@ public class PatientControllerTest {
     }
 
     @Test
-    void changePatientPassword_ValidCommand_ReturnsNoContent() throws Exception {
-        // given
-        ChangePatientPasswordCommand command = new ChangePatientPasswordCommand("new-password");
-        // when
-        ResultActions result = mockMvc.perform(
-                patch("/patients/{email}/password", EMAIL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonMapper.writeValueAsString(command))
-        );
-        // then
-        result.andExpectAll(
-                status().isNoContent(),
-                content().string("")
-        );
-        verify(patientService).changePatientPassword(EMAIL, command.password());
-    }
-
-    @Test
     void getPatientByEmail_PatientDoesNotExist_RetunNotFound() throws Exception {
         // given
         when(patientService.getPatientByEmail(EMAIL)).thenThrow(new PatientNotFoundException(EMAIL));
@@ -251,18 +220,15 @@ public class PatientControllerTest {
     }
 
     @Test
-    void addPatient_EmailAlreadyExists_ReturnsConflict() throws Exception {
+    void addPatient_IdCardNoAlreadyExists_ReturnsConflict() throws Exception {
         // given
         CreatePatientCommand command = new CreatePatientCommand(
-                EMAIL,
-                "test-password",
+                USER_ID,
                 "TEST08",
-                "John",
-                "Doe",
                 "123456789",
                 LocalDate.of(2000, 1, 10)
         );
-        when(patientService.addPatient(command)).thenThrow(new PatientAlreadyExistsException(EMAIL));
+        when(patientService.addPatient(command)).thenThrow(new PatientAlreadyExistsException(command.idCardNo()));
         // when & then
         mockMvc.perform(
                 post("/patients")
@@ -272,7 +238,7 @@ public class PatientControllerTest {
                 status().isConflict(),
                 content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON),
                 jsonPath("$.status").value(409),
-                jsonPath("$.detail").value("Patient with email " + EMAIL + " already exists")
+                jsonPath("$.detail").value("Patient with id card number TEST08 already exists")
         );
         verify(patientService).addPatient(command);
     }
@@ -281,11 +247,7 @@ public class PatientControllerTest {
     void updatePatientByEmail_PatientDoesNotExist_ReturnsNotFound() throws Exception {
         // given
         UpdatePatientCommand command = new UpdatePatientCommand(
-                EMAIL,
-                "test-password",
                 "TEST08",
-                "John",
-                "Doe",
                 "555666777",
                 LocalDate.of(2000, 1, 10)
         );
@@ -322,39 +284,15 @@ public class PatientControllerTest {
     }
 
     @Test
-    void changePatientPassword_PatientDoesNotExist_ReturnsNotFound() throws Exception {
-        // given
-        ChangePatientPasswordCommand command = new ChangePatientPasswordCommand("new-password");
-        doThrow(new PatientNotFoundException(EMAIL))
-                .when(patientService)
-                .changePatientPassword(EMAIL, command.password());
-        // when & then
-        mockMvc.perform(
-                patch("/patients/{email}/password", EMAIL)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonMapper.writeValueAsString(command))
-        ).andExpectAll(
-                status().isNotFound(),
-                content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON),
-                jsonPath("$.status").value(404),
-                jsonPath("$.detail").value("Patient with email " + EMAIL + " was not found")
-        );
-        verify(patientService).changePatientPassword(EMAIL, command.password());
-    }
-
-    @Test
     void addPatient_ValidationFails_ReturnsBadRequest() throws Exception {
         // given
         CreatePatientCommand command = new CreatePatientCommand(
-                "",
-                "test-password",
+                null,
                 "TEST08",
-                "John",
-                "Doe",
                 "123456789",
                 LocalDate.of(2000, 1, 10)
         );
-        when(patientService.addPatient(command)).thenThrow(new PatientValidationException("Email is required"));
+        when(patientService.addPatient(command)).thenThrow(new PatientValidationException("User id is required"));
         // when & then
         mockMvc.perform(
                 post("/patients")
@@ -364,7 +302,7 @@ public class PatientControllerTest {
                 status().isBadRequest(),
                 content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON),
                 jsonPath("$.status").value(400),
-                jsonPath("$.detail").value("Email is required")
+                jsonPath("$.detail").value("User id is required")
         );
         verify(patientService).addPatient(command);
     }

@@ -2,18 +2,17 @@ package com.adamkaz7.medicalclinic.model;
 
 import com.adamkaz7.medicalclinic.command.UpdateMedicalFacilityCommand;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @ToString
 @Entity
+@Builder
 @Table(name = "MEDICAL_FACILITIES")
 public class MedicalFacility {
     @Id
@@ -37,15 +36,6 @@ public class MedicalFacility {
             inverseJoinColumns = @JoinColumn(name = "DOCTOR_ID")
     )
     private Set<Doctor> doctors = new HashSet<>();
-
-    public MedicalFacility(Long id, String name, String city, String postalCode, String street, String buildingNumber) {
-        this.id = id;
-        this.name = name;
-        this.city = city;
-        this.postalCode = postalCode;
-        this.street = street;
-        this.buildingNumber = buildingNumber;
-    }
 
     public void assignDoctor(Doctor doctor) {
         doctors.add(doctor);

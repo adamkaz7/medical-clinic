@@ -38,12 +38,18 @@ public class PatientService {
 
     public PatientDto addPatient(CreatePatientCommand command) {
         patientValidator.validateCreatePatientCommand(command);
-        if (patientRepository.existsByEmail(command.email())) {
-            throw new PatientAlreadyExistsException(command.email());
+        User user = userRepository.findById(command.userId())
+                .orElseThrow(() -> new UserNotFoundException(command.userId()));
+        patientValidator.validateUserAssignment(
+                patientRepository.existsByUser_Id(command.userId())
+        );
+        if (patientRepository.existsByIdCardNo(command.idCardNo())) {
+            throw new PatientAlreadyExistsException(command.idCardNo());
         }
         Patient patient = patientMapper.toEntity(command);
-        Patient savedPatient = patientRepository.save(patient);
-        return patientMapper.toDto(savedPatient);
+        patient.assignUser(user);
+        patient = patientRepository.save(patient);
+        return patientMapper.toDto(patient);
     }
 
     public void deletePatientByEmail(String email) {
@@ -55,34 +61,14 @@ public class PatientService {
         patientValidator.validateUpdatePatientCommand(email, command);
         Patient patient = findPatientByEmail(email);
         patientValidator.validateIdCardNoUnchanged(patient.getIdCardNo(), command.idCardNo());
-        if (!patient.getEmail().equals(command.email()) && patientRepository.existsByEmail(command.email())) {
-            throw new PatientAlreadyExistsException(command.email());
-        }
         patient.updatePatient(command);
-        Patient savedPatient = patientRepository.save(patient);
-        return patientMapper.toDto(savedPatient);
-    }
-
-    public void changePatientPassword(String email, String newPassword) {
-        patientValidator.validatePassword(newPassword);
-        Patient patient = findPatientByEmail(email);
-        patient.changePassword(newPassword);
-        patientRepository.save(patient);
+        patient = patientRepository.save(patient);
+        return patientMapper.toDto(patient);
     }
 
     private Patient findPatientByEmail(String email) {
         patientValidator.validateEmail(email);
-        return patientRepository.findByEmail(email)
+        return patientRepository.findByUser_Email(email)
                 .orElseThrow(() -> new PatientNotFoundException(email));
-    }
-
-    public void assignUserToPatient(String email, Long userId) {
-        Patient patient = findPatientByEmail(email);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
-        boolean userAlreadyAssigned = patientRepository.existsByUser_Id(userId);
-        patientValidator.validateUserAssignment(patient, userAlreadyAssigned);
-        patient.assignUser(user);
-        patientRepository.save(patient);
     }
 }

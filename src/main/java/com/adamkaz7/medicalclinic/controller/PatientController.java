@@ -1,6 +1,5 @@
 package com.adamkaz7.medicalclinic.controller;
 
-import com.adamkaz7.medicalclinic.command.ChangePatientPasswordCommand;
 import com.adamkaz7.medicalclinic.command.CreatePatientCommand;
 import com.adamkaz7.medicalclinic.command.UpdatePatientCommand;
 import com.adamkaz7.medicalclinic.dto.PatientDto;
@@ -45,20 +44,5 @@ public class PatientController {
             @RequestBody UpdatePatientCommand command
     ) {
         return patientService.updatePatientByEmail(email, command);
-    }
-
-    @PatchMapping("/{email}/password")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void changePatientPassword(
-            @PathVariable String email,
-            @RequestBody ChangePatientPasswordCommand command
-    ) {
-        patientService.changePatientPassword(email, command.password());
-    }
-
-    @PatchMapping("/{email}/user/{userId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void assignUserToPatient(@PathVariable String email, @PathVariable Long userId) {
-        patientService.assignUserToPatient(email, userId);
     }
 }

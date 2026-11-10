@@ -3,11 +3,8 @@ package com.adamkaz7.medicalclinic.command;
 import java.time.LocalDate;
 
 public record CreatePatientCommand(
-        String email,
-        String password,
+        Long userId,
         String idCardNo,
-        String firstName,
-        String lastName,
         String phoneNumber,
         LocalDate birthday
 ) {

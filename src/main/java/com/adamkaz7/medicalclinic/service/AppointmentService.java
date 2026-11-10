@@ -35,8 +35,8 @@ public class AppointmentService {
         appointmentValidator.validateDoctorAvailability(doctor, command.startTime(), command.endTime());
         Appointment appointment = appointmentMapper.toEntity(command);
         appointment.assignDoctor(doctor);
-        Appointment savedAppointment = appointmentRepository.save(appointment);
-        return appointmentMapper.toDto(savedAppointment);
+        appointment = appointmentRepository.save(appointment);
+        return appointmentMapper.toDto(appointment);
     }
 
     public List<AppointmentDto> getAllAppointments() {
@@ -46,9 +46,9 @@ public class AppointmentService {
                 .toList();
     }
 
-    public void assignPatientToAppointment(Long appointmentId, String email) {
+    public void assignPatientToAppointment(Long appointmentId, Long patientId) {
         Appointment appointment = findAppointmentById(appointmentId);
-        Patient patient = findPatientByEmail(email);
+        Patient patient = findPatientById(patientId);
         appointmentValidator.validatePatientAvailability(appointment);
         appointment.assignPatient(patient);
         appointmentRepository.save(appointment);
@@ -70,8 +70,8 @@ public class AppointmentService {
                 .orElseThrow(() -> new AppointmentNotFoundException(appointmentId));
     }
 
-    private Patient findPatientByEmail(String email) {
-        return patientRepository.findByEmail(email)
-                .orElseThrow(() -> new PatientNotFoundException(email));
+    private Patient findPatientById(Long patientId) {
+        return patientRepository.findById(patientId)
+                .orElseThrow(() -> new PatientNotFoundException(patientId));
     }
 }

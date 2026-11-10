@@ -2,7 +2,6 @@ package com.adamkaz7.medicalclinic.controller;
 
 import com.adamkaz7.medicalclinic.command.CreateAppointmentCommand;
 import com.adamkaz7.medicalclinic.dto.AppointmentDto;
-import com.adamkaz7.medicalclinic.model.Appointment;
 import com.adamkaz7.medicalclinic.service.AppointmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,10 +32,9 @@ public class AppointmentController {
         return appointmentService.getAppointmentById(appointmentId);
     }
 
-    @PatchMapping("/{appointmentId}/patient/{email}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void assignPatientToAppointment(@PathVariable Long appointmentId, @PathVariable String email) {
-        appointmentService.assignPatientToAppointment(appointmentId, email);
+    @PatchMapping("/{appointmentId}/patient/{patientId}")
+    public void assignPatientToAppointment(@PathVariable Long appointmentId, @PathVariable Long patientId) {
+        appointmentService.assignPatientToAppointment(appointmentId, patientId);
     }
 
     @DeleteMapping("/{appointmentId}")
