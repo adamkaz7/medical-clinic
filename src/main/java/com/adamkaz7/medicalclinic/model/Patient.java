@@ -1,12 +1,7 @@
 package com.adamkaz7.medicalclinic.model;
 
 import com.adamkaz7.medicalclinic.command.UpdatePatientCommand;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,7 +17,7 @@ import java.time.LocalDate;
 @Builder
 @ToString
 @Entity
-@Table(name = "patients")
+@Table(name = "PATIENTS")
 public class Patient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,6 +36,9 @@ public class Patient {
     private String phoneNumber;
     @Column(name = "BIRTHDAY")
     private LocalDate birthday;
+    @OneToOne
+    @JoinColumn(name = "USER_ID", unique = true)
+    private User user;
 
     public Patient(
             String email,
@@ -51,7 +49,7 @@ public class Patient {
             String phoneNumber,
             LocalDate birthday
     ) {
-        this(null, email, password, idCardNo, firstName, lastName, phoneNumber, birthday);
+        this(null, email, password, idCardNo, firstName, lastName, phoneNumber, birthday, null);
     }
 
     public void changePassword(String newPassword) {
@@ -59,11 +57,15 @@ public class Patient {
     }
 
     public void updatePatient(UpdatePatientCommand command) {
+        this.email = command.email();
         this.password = command.password();
-        this.idCardNo = command.idCardNo();
         this.firstName = command.firstName();
         this.lastName = command.lastName();
         this.phoneNumber = command.phoneNumber();
         this.birthday = command.birthday();
+    }
+
+    public void assignUser(User user) {
+        this.user = user;
     }
 }
