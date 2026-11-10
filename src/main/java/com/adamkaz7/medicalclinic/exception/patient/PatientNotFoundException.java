@@ -1,5 +1,6 @@
-package com.adamkaz7.medicalclinic.exception;
+package com.adamkaz7.medicalclinic.exception.patient;
 
+import com.adamkaz7.medicalclinic.exception.MedicalClinicException;
 import org.springframework.http.HttpStatus;
 
 public class PatientNotFoundException extends MedicalClinicException {

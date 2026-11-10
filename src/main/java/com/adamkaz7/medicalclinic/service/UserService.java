@@ -2,9 +2,9 @@ package com.adamkaz7.medicalclinic.service;
 
 import com.adamkaz7.medicalclinic.command.CreateUserCommand;
 import com.adamkaz7.medicalclinic.dto.UserDto;
-import com.adamkaz7.medicalclinic.exception.UserAlreadyExistsException;
-import com.adamkaz7.medicalclinic.exception.UserNotFoundException;
-import com.adamkaz7.medicalclinic.exception.UserValidationException;
+import com.adamkaz7.medicalclinic.exception.user.UserAlreadyExistsException;
+import com.adamkaz7.medicalclinic.exception.user.UserNotFoundException;
+import com.adamkaz7.medicalclinic.exception.user.UserValidationException;
 import com.adamkaz7.medicalclinic.mapper.UserMapper;
 import com.adamkaz7.medicalclinic.model.User;
 import com.adamkaz7.medicalclinic.repository.PatientRepository;

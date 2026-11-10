@@ -2,7 +2,7 @@ package com.adamkaz7.medicalclinic.validator;
 
 import com.adamkaz7.medicalclinic.command.CreatePatientCommand;
 import com.adamkaz7.medicalclinic.command.UpdatePatientCommand;
-import com.adamkaz7.medicalclinic.exception.PatientValidationException;
+import com.adamkaz7.medicalclinic.exception.patient.PatientValidationException;
 import com.adamkaz7.medicalclinic.model.Patient;
 import org.springframework.stereotype.Component;
 
