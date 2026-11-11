@@ -3,6 +3,7 @@ package com.adamkaz7.medicalclinic.model;
 import com.adamkaz7.medicalclinic.command.UpdateDoctorCommand;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -41,7 +42,7 @@ public class Doctor {
     @Column(nullable = false)
     private String specialization;
     @ToString.Exclude
-    @ManyToMany(mappedBy = "doctors")
+    @ManyToMany(mappedBy = "doctors", fetch = FetchType.LAZY)
     private Set<MedicalFacility> medicalFacilities = new HashSet<>();
 
     public void changePassword(String newPassword) {
