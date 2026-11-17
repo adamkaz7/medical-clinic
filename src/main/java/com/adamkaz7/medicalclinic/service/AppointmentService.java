@@ -15,6 +15,7 @@ import com.adamkaz7.medicalclinic.repository.PatientRepository;
 import com.adamkaz7.medicalclinic.validator.AppointmentValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,6 +29,7 @@ public class AppointmentService {
     private final AppointmentMapper appointmentMapper;
     private final AppointmentValidator appointmentValidator;
 
+    @Transactional
     public AppointmentDto addAppointment(CreateAppointmentCommand command) {
         appointmentValidator.validateAppointmentTime(command.startTime(), command.endTime());
         Doctor doctor = doctorRepository.findById(command.doctorId())
@@ -39,6 +41,7 @@ public class AppointmentService {
         return appointmentMapper.toDto(appointment);
     }
 
+    @Transactional
     public List<AppointmentDto> getAllAppointments() {
         return appointmentRepository
                 .findAllByPatientIsNullAndStartTimeAfterOrderByStartTime(LocalDateTime.now()).stream()
@@ -46,6 +49,7 @@ public class AppointmentService {
                 .toList();
     }
 
+    @Transactional
     public void assignPatientToAppointment(Long appointmentId, Long patientId) {
         Appointment appointment = findAppointmentById(appointmentId);
         Patient patient = findPatientById(patientId);
@@ -54,11 +58,13 @@ public class AppointmentService {
         appointmentRepository.save(appointment);
     }
 
+    @Transactional
     public AppointmentDto getAppointmentById(Long appointmentId) {
         Appointment appointment = findAppointmentById(appointmentId);
         return appointmentMapper.toDto(appointment);
     }
 
+    @Transactional
     public void deleteAppointment(Long appointmentId) {
         Appointment appointment = findAppointmentById(appointmentId);
         appointmentValidator.validatePatientAvailability(appointment);

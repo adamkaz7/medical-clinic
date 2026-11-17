@@ -14,6 +14,7 @@ import com.adamkaz7.medicalclinic.repository.UserRepository;
 import com.adamkaz7.medicalclinic.validator.PatientValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -25,17 +26,20 @@ public class PatientService {
     private final PatientValidator patientValidator;
     private final UserRepository userRepository;
 
+    @Transactional
     public List<PatientDto> getAllPatients() {
         return patientRepository.findAll().stream()
                 .map(patientMapper::toDto)
                 .toList();
     }
 
+    @Transactional
     public PatientDto getPatientByEmail(String email) {
         Patient patient = findPatientByEmail(email);
         return patientMapper.toDto(patient);
     }
 
+    @Transactional
     public PatientDto addPatient(CreatePatientCommand command) {
         User user = userRepository.findById(command.userId())
                 .orElseThrow(() -> new UserNotFoundException(command.userId()));
@@ -51,11 +55,13 @@ public class PatientService {
         return patientMapper.toDto(patient);
     }
 
+    @Transactional
     public void deletePatientByEmail(String email) {
         Patient patient = findPatientByEmail(email);
         patientRepository.delete(patient);
     }
 
+    @Transactional
     public PatientDto updatePatientByEmail(String email, UpdatePatientCommand command) {
         Patient patient = findPatientByEmail(email);
         patientValidator.validateIdCardNoUnchanged(patient.getIdCardNo(), command.idCardNo());

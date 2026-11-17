@@ -11,6 +11,7 @@ import com.adamkaz7.medicalclinic.repository.PatientRepository;
 import com.adamkaz7.medicalclinic.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +20,7 @@ public class UserService {
     private final UserMapper userMapper;
     private final PatientRepository patientRepository;
 
+    @Transactional
     public UserDto addUser(CreateUserCommand command) {
         if (userRepository.existsByEmail(command.email())) {
             throw new UserAlreadyExistsException(command.email());
@@ -33,6 +35,7 @@ public class UserService {
         return userMapper.toDto(user);
     }
 
+    @Transactional
     public void deleteUserById(Long userId) {
         User user = findUserById(userId);
         if (patientRepository.existsByUser_Id(userId)) {
@@ -41,6 +44,7 @@ public class UserService {
         userRepository.delete(user);
     }
 
+    @Transactional
     public void changeUserPassword(Long userId, String newPassword) {
         User user = findUserById(userId);
         user.changePassword(newPassword);

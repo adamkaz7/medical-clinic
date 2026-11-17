@@ -14,6 +14,7 @@ import com.adamkaz7.medicalclinic.repository.MedicalFacilityRepository;
 import com.adamkaz7.medicalclinic.validator.DoctorValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class DoctorService {
     private final DoctorMapper doctorMapper;
     private final MedicalFacilityRepository medicalFacilityRepository;
 
+    @Transactional
     public DoctorDto addDoctor(CreateDoctorCommand command) {
         if (doctorRepository.existsByEmail(command.email())) {
             throw new DoctorAlreadyExistsException(command.email());
@@ -33,12 +35,14 @@ public class DoctorService {
         return doctorMapper.toDto(doctor);
     }
 
+    @Transactional
     public List<DoctorDto> getAllDoctors() {
         return doctorRepository.findAll().stream()
                 .map(doctorMapper::toDto)
                 .toList();
     }
 
+    @Transactional
     public void assignDoctorToMedicalFacility(Long doctorId, Long facilityId) {
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new DoctorNotFoundException(doctorId));
@@ -51,18 +55,21 @@ public class DoctorService {
         medicalFacilityRepository.save(facility);
     }
 
+    @Transactional
     public DoctorDto getDoctorById(Long doctorId) {
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new DoctorNotFoundException(doctorId));
         return doctorMapper.toDto(doctor);
     }
 
+    @Transactional
     public void changeDoctorPassword(Long doctorId, String newPassword) {
         Doctor doctor = findDoctorById(doctorId);
         doctor.changePassword(newPassword);
         doctorRepository.save(doctor);
     }
 
+    @Transactional
     public DoctorDto updateDoctorById(Long doctorId, UpdateDoctorCommand command) {
         Doctor doctor = findDoctorById(doctorId);
         if (!doctor.getEmail().equals(command.email()) && doctorRepository.existsByEmail(command.email())) {
@@ -73,6 +80,7 @@ public class DoctorService {
         return doctorMapper.toDto(doctor);
     }
 
+    @Transactional
     public void deleteDoctor(Long doctorId) {
         Doctor doctor = findDoctorById(doctorId);
         doctorRepository.delete(doctor);

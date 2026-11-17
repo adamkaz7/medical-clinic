@@ -10,6 +10,7 @@ import com.adamkaz7.medicalclinic.model.MedicalFacility;
 import com.adamkaz7.medicalclinic.repository.MedicalFacilityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,6 +20,7 @@ public class MedicalFacilityService {
     private final MedicalFacilityRepository medicalFacilityRepository;
     private final MedicalFacilityMapper medicalFacilityMapper;
 
+    @Transactional
     public MedicalFacilityDto addMedicalFacility(CreateMedicalFacilityCommand command) {
         if (medicalFacilityRepository.existsByName(command.name())) {
             throw new MedicalFacilityAlreadyExistsException(command.name());
@@ -28,6 +30,7 @@ public class MedicalFacilityService {
         return medicalFacilityMapper.toDto(facility);
     }
 
+    @Transactional
     public List<MedicalFacilityDto> getAllMedicalFacilities() {
         return medicalFacilityRepository.findAll().stream()
                 .map(medicalFacilityMapper::toDto)
@@ -40,6 +43,7 @@ public class MedicalFacilityService {
         return medicalFacilityMapper.toDto(facility);
     }
 
+    @Transactional
     public MedicalFacilityDto updateMedicalFacility(Long facilityId, UpdateMedicalFacilityCommand command) {
         MedicalFacility facility = findMedicalFacilityById(facilityId);
         if (!facility.getName().equals(command.name()) && medicalFacilityRepository.existsByName(command.name())) {
@@ -50,6 +54,7 @@ public class MedicalFacilityService {
         return medicalFacilityMapper.toDto(facility);
     }
 
+    @Transactional
     public void deleteMedicalFacility(Long facilityId) {
         MedicalFacility facility = findMedicalFacilityById(facilityId);
         medicalFacilityRepository.delete(facility);
