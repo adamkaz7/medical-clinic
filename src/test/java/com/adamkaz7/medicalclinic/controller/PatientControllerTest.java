@@ -11,6 +11,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -64,42 +68,63 @@ public class PatientControllerTest {
     @Test
     void getAllPatients_PatientsExist_ReturnOk() throws Exception {
         // given
-        when(patientService.getAllPatients()).thenReturn(List.of(patientDto, secondPatientDto));
+        Pageable pageable = PageRequest.of(1, 2);
+        Page<PatientDto> patients = new PageImpl<>(
+                List.of(patientDto, secondPatientDto),
+                pageable,
+                6
+        );
+        when(patientService.getAllPatients(pageable)).thenReturn(patients);
         // when
-        ResultActions result = mockMvc.perform(get("/patients"));
+        ResultActions result = mockMvc.perform(get("/patients")
+                .param("page", "1")
+                .param("size", "2")
+        );
         // then
         result.andExpectAll(
                 status().isOk(),
                 content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON),
-                jsonPath("$").isArray(),
-                jsonPath("$.length()").value(2),
-                jsonPath("$[0].user.email").value(EMAIL),
-                jsonPath("$[0].idCardNo").value("TEST08"),
-                jsonPath("$[0].user.firstName").value("John"),
-                jsonPath("$[0].user.lastName").value("Doe"),
-                jsonPath("$[0].phoneNumber").value("123456789"),
-                jsonPath("$[0].birthday").value("2000-01-10"),
-                jsonPath("$[1].user.email").value("jane@example.com"),
-                jsonPath("$[0].user.password").doesNotExist(),
-                jsonPath("$[1].user.password").doesNotExist()
+                jsonPath("$.content").isArray(),
+                jsonPath("$.content.length()").value(2),
+                jsonPath("$.content[0].user.email").value(EMAIL),
+                jsonPath("$.content[0].idCardNo").value("TEST08"),
+                jsonPath("$.content[0].user.firstName").value("John"),
+                jsonPath("$.content[0].user.lastName").value("Doe"),
+                jsonPath("$.content[0].phoneNumber").value("123456789"),
+                jsonPath("$.content[0].birthday").value("2000-01-10"),
+                jsonPath("$.content[1].user.email").value("jane@example.com"),
+                jsonPath("$.content[0].user.password").doesNotExist(),
+                jsonPath("$.content[1].user.password").doesNotExist(),
+                jsonPath("$.number").value(1),
+                jsonPath("$.size").value(2),
+                jsonPath("$.totalElements").value(6),
+                jsonPath("$.totalPages").value(3)
         );
-        verify(patientService).getAllPatients();
+        verify(patientService).getAllPatients(pageable);
     }
 
     @Test
-    void getAllPatients_NoPatientsExist_ReturnEmptyList() throws Exception {
+    void getAllPatients_NoPatientsExist_ReturnEmptyPage() throws Exception {
         // given
-        when(patientService.getAllPatients()).thenReturn(List.of());
+        Pageable pageable = PageRequest.of(0, 2);
+        when(patientService.getAllPatients(pageable)).thenReturn(Page.empty(pageable));
         // when
-        ResultActions result = mockMvc.perform(get("/patients"));
+        ResultActions result = mockMvc.perform(get("/patients")
+                .param("page", "0")
+                .param("size", "2")
+        );
         // then
         result.andExpectAll(
                 status().isOk(),
                 content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON),
-                jsonPath("$").isArray(),
-                jsonPath("$").isEmpty()
+                jsonPath("$.content").isArray(),
+                jsonPath("$.content").isEmpty(),
+                jsonPath("$.number").value(0),
+                jsonPath("$.size").value(2),
+                jsonPath("$.totalElements").value(0),
+                jsonPath("$.totalPages").value(0)
         );
-        verify(patientService).getAllPatients();
+        verify(patientService).getAllPatients(pageable);
     }
 
     @Test
@@ -285,15 +310,18 @@ public class PatientControllerTest {
     @Test
     void getAllPatients_UnexpectedError_ReturnsInternalServerError() throws Exception {
         // given
-        when(patientService.getAllPatients()).thenThrow(new RuntimeException("Database connection failed"));
+        Pageable pageable = PageRequest.of(0, 2);
+        when(patientService.getAllPatients(pageable)).thenThrow(new RuntimeException("Database connection failed"));
         // when & then
-        mockMvc.perform(get("/patients"))
+        mockMvc.perform(get("/patients")
+                        .param("page", "0")
+                        .param("size", "2"))
                 .andExpectAll(
                         status().isInternalServerError(),
                         content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON),
                         jsonPath("$.status").value(500),
                         jsonPath("$.detail").value("Unknown error")
                 );
-        verify(patientService).getAllPatients();
+        verify(patientService).getAllPatients(pageable);
     }
 }

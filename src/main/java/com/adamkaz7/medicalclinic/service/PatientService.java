@@ -13,10 +13,11 @@ import com.adamkaz7.medicalclinic.repository.PatientRepository;
 import com.adamkaz7.medicalclinic.repository.UserRepository;
 import com.adamkaz7.medicalclinic.validator.PatientValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -27,10 +28,9 @@ public class PatientService {
     private final UserRepository userRepository;
 
     @Transactional
-    public List<PatientDto> getAllPatients() {
-        return patientRepository.findAll().stream()
-                .map(patientMapper::toDto)
-                .toList();
+    public Page<PatientDto> getAllPatients(Pageable pageable) {
+        return patientRepository.findAll(pageable)
+                .map(patientMapper::toDto);
     }
 
     @Transactional

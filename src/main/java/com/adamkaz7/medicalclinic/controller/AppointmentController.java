@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -47,8 +49,8 @@ public class AppointmentController {
     @Operation(summary = "Get available appointments")
     @ApiResponse(responseCode = "200", description = "Available appointment list")
     @GetMapping
-    public List<AppointmentDto> getAllAppointments() {
-        return appointmentService.getAllAppointments();
+    public Page<AppointmentDto> getAllAppointments(Pageable pageable) {
+        return appointmentService.getAllAppointments(pageable);
     }
 
     @Operation(summary = "Get an appointment by ID")

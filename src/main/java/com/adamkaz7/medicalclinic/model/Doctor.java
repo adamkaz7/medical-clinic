@@ -56,4 +56,16 @@ public class Doctor {
         this.lastName = command.lastName();
         this.specialization = command.specialization();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Doctor doctor)) return false;
+        return id != null && id.equals(doctor.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

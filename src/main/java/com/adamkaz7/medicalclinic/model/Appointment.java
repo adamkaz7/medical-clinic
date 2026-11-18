@@ -45,4 +45,16 @@ public class Appointment {
     public void assignDoctor(Doctor doctor) {
         this.doctor = doctor;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Appointment appointment)) return false;
+        return id != null && id.equals(appointment.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

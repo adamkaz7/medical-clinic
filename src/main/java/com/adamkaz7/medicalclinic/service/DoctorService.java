@@ -13,6 +13,8 @@ import com.adamkaz7.medicalclinic.repository.DoctorRepository;
 import com.adamkaz7.medicalclinic.repository.MedicalFacilityRepository;
 import com.adamkaz7.medicalclinic.validator.DoctorValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,10 +38,9 @@ public class DoctorService {
     }
 
     @Transactional
-    public List<DoctorDto> getAllDoctors() {
-        return doctorRepository.findAll().stream()
-                .map(doctorMapper::toDto)
-                .toList();
+    public Page<DoctorDto> getAllDoctors(Pageable pageable) {
+        return doctorRepository.findAll(pageable)
+                .map(doctorMapper::toDto);
     }
 
     @Transactional

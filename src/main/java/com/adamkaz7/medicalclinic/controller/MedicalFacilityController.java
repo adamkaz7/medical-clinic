@@ -12,6 +12,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,8 +24,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @Tag(name = "Facilities", description = "Facilities management")
 @RestController
@@ -58,8 +58,8 @@ public class MedicalFacilityController {
     @Operation(summary = "Get all medical facilities")
     @ApiResponse(responseCode = "200", description = "Medical facility list")
     @GetMapping
-    public List<MedicalFacilityDto> getAllMedicalFacilities() {
-        return medicalFacilityService.getAllMedicalFacilities();
+    public Page<MedicalFacilityDto> getAllMedicalFacilities(Pageable pageable) {
+        return medicalFacilityService.getAllMedicalFacilities(pageable);
     }
 
     @Operation(summary = "Delete medical facility by ID")

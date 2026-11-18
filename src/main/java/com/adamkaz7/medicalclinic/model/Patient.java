@@ -48,4 +48,16 @@ public class Patient {
     public void assignUser(User user) {
         this.user = user;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Patient patient)) return false;
+        return id != null && id.equals(patient.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

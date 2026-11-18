@@ -14,11 +14,12 @@ import com.adamkaz7.medicalclinic.repository.DoctorRepository;
 import com.adamkaz7.medicalclinic.repository.PatientRepository;
 import com.adamkaz7.medicalclinic.validator.AppointmentValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -42,11 +43,10 @@ public class AppointmentService {
     }
 
     @Transactional
-    public List<AppointmentDto> getAllAppointments() {
+    public Page<AppointmentDto> getAllAppointments(Pageable pageable) {
         return appointmentRepository
-                .findAllByPatientIsNullAndStartTimeAfterOrderByStartTime(LocalDateTime.now()).stream()
-                .map(appointmentMapper::toDto)
-                .toList();
+                .findAllByPatientIsNullAndStartTimeAfterOrderByStartTime(LocalDateTime.now(), pageable)
+                .map(appointmentMapper::toDto);
     }
 
     @Transactional

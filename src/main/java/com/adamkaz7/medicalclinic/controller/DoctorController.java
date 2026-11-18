@@ -13,6 +13,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -60,8 +62,8 @@ public class DoctorController {
     @Operation(summary = "Get all doctors")
     @ApiResponse(responseCode = "200", description = "Doctor list returned")
     @GetMapping
-    public List<DoctorDto> getAllDoctors() {
-        return doctorService.getAllDoctors();
+    public Page<DoctorDto> getAllDoctors(Pageable pageable) {
+        return doctorService.getAllDoctors(pageable);
     }
 
     @Operation(summary = "Assign doctor to a medical facilityD")

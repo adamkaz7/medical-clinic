@@ -9,10 +9,11 @@ import com.adamkaz7.medicalclinic.mapper.MedicalFacilityMapper;
 import com.adamkaz7.medicalclinic.model.MedicalFacility;
 import com.adamkaz7.medicalclinic.repository.MedicalFacilityRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -31,10 +32,9 @@ public class MedicalFacilityService {
     }
 
     @Transactional
-    public List<MedicalFacilityDto> getAllMedicalFacilities() {
-        return medicalFacilityRepository.findAll().stream()
-                .map(medicalFacilityMapper::toDto)
-                .toList();
+    public Page<MedicalFacilityDto> getAllMedicalFacilities(Pageable pageable) {
+        return medicalFacilityRepository.findAll(pageable)
+                .map(medicalFacilityMapper::toDto);
     }
 
     public MedicalFacilityDto getMedicalFacilityById(Long facilityId) {
