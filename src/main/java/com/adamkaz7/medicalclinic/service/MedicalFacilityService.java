@@ -9,6 +9,7 @@ import com.adamkaz7.medicalclinic.mapper.MedicalFacilityMapper;
 import com.adamkaz7.medicalclinic.model.MedicalFacility;
 import com.adamkaz7.medicalclinic.repository.MedicalFacilityRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MedicalFacilityService {
     private final MedicalFacilityRepository medicalFacilityRepository;
     private final MedicalFacilityMapper medicalFacilityMapper;
@@ -26,6 +28,7 @@ public class MedicalFacilityService {
         if (medicalFacilityRepository.existsByName(command.name())) {
             throw new MedicalFacilityAlreadyExistsException(command.name());
         }
+        log.info("Creating medical facility: name={}", command.name());
         MedicalFacility facility = medicalFacilityMapper.toEntity(command);
         facility = medicalFacilityRepository.save(facility);
         return medicalFacilityMapper.toDto(facility);
@@ -49,6 +52,7 @@ public class MedicalFacilityService {
         if (!facility.getName().equals(command.name()) && medicalFacilityRepository.existsByName(command.name())) {
             throw new MedicalFacilityAlreadyExistsException(command.name());
         }
+        log.info("Updating medical facility: facilityId={}", facilityId);
         facility.updateMedicalFacility(command);
         facility = medicalFacilityRepository.save(facility);
         return medicalFacilityMapper.toDto(facility);
@@ -57,6 +61,7 @@ public class MedicalFacilityService {
     @Transactional
     public void deleteMedicalFacility(Long facilityId) {
         MedicalFacility facility = findMedicalFacilityById(facilityId);
+        log.info("Deleting medical facility: facilityId={}", facilityId);
         medicalFacilityRepository.delete(facility);
     }
 

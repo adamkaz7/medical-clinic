@@ -14,6 +14,7 @@ import com.adamkaz7.medicalclinic.repository.DoctorRepository;
 import com.adamkaz7.medicalclinic.repository.PatientRepository;
 import com.adamkaz7.medicalclinic.validator.AppointmentValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final DoctorRepository doctorRepository;
@@ -36,6 +38,8 @@ public class AppointmentService {
         Doctor doctor = doctorRepository.findById(command.doctorId())
                 .orElseThrow(() -> new DoctorNotFoundException(command.doctorId()));
         appointmentValidator.validateDoctorAvailability(doctor, command.startTime(), command.endTime());
+        log.info("Creating appointment: doctorId={}, startTime={}, endTime={}",
+                command.doctorId(), command.startTime(), command.endTime());
         Appointment appointment = appointmentMapper.toEntity(command);
         appointment.assignDoctor(doctor);
         appointment = appointmentRepository.save(appointment);
@@ -54,6 +58,7 @@ public class AppointmentService {
         Appointment appointment = findAppointmentById(appointmentId);
         Patient patient = findPatientById(patientId);
         appointmentValidator.validatePatientAvailability(appointment);
+        log.info("Booking appointment: appointmentId={}, patientId={}", appointmentId, patientId);
         appointment.assignPatient(patient);
         appointmentRepository.save(appointment);
     }
@@ -68,6 +73,7 @@ public class AppointmentService {
     public void deleteAppointment(Long appointmentId) {
         Appointment appointment = findAppointmentById(appointmentId);
         appointmentValidator.validatePatientAvailability(appointment);
+        log.info("Deleting appointment: appointmentId={}", appointmentId);
         appointmentRepository.delete(appointment);
     }
 

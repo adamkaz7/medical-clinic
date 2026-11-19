@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -33,6 +34,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/doctors")
 @RequiredArgsConstructor
+@Slf4j
 public class DoctorController {
     private final DoctorService doctorService;
 
@@ -45,6 +47,7 @@ public class DoctorController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public DoctorDto addDoctor(@Valid @RequestBody CreateDoctorCommand command) {
+        log.info("Received POST /doctors request");
         return doctorService.addDoctor(command);
     }
 
@@ -56,6 +59,7 @@ public class DoctorController {
     })
     @GetMapping("/{doctorId}")
     public DoctorDto getDoctorById(@PathVariable Long doctorId) {
+        log.info("Received GET /doctors/{} request", doctorId);
         return doctorService.getDoctorById(doctorId);
     }
 
@@ -63,6 +67,7 @@ public class DoctorController {
     @ApiResponse(responseCode = "200", description = "Doctor list returned")
     @GetMapping
     public Page<DoctorDto> getAllDoctors(Pageable pageable) {
+        log.info("Received GET /doctors request: page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
         return doctorService.getAllDoctors(pageable);
     }
 
@@ -75,6 +80,7 @@ public class DoctorController {
     @PatchMapping("/{doctorId}/facilities/{facilityId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void assignDoctorToMedicalFacility(@PathVariable Long doctorId, @PathVariable Long facilityId) {
+        log.info("Received PATCH /doctors/{}/facilities/{} request", doctorId, facilityId);
         doctorService.assignDoctorToMedicalFacility(doctorId, facilityId);
     }
 
@@ -87,6 +93,7 @@ public class DoctorController {
     @PatchMapping("/{doctorId}/password")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void changeDoctorPassword(@PathVariable Long doctorId, @Valid @RequestBody ChangeDoctorPasswordCommand command) {
+        log.info("Received PATCH /doctors/{}/password request", doctorId);
         doctorService.changeDoctorPassword(doctorId, command.password());
     }
 
@@ -99,6 +106,7 @@ public class DoctorController {
     @DeleteMapping("/{doctorId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteDoctor(@PathVariable Long doctorId) {
+        log.info("Received DELETE /doctors/{} request", doctorId);
         doctorService.deleteDoctor(doctorId);
     }
 
@@ -110,6 +118,7 @@ public class DoctorController {
     })
     @PostMapping("/{doctorId}")
     public DoctorDto updateDoctorById(@PathVariable Long doctorId, @Valid @RequestBody UpdateDoctorCommand command) {
+        log.info("Received POST /doctors/{} request", doctorId);
         return doctorService.updateDoctorById(doctorId, command);
     }
 }

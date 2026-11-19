@@ -13,6 +13,7 @@ import com.adamkaz7.medicalclinic.repository.DoctorRepository;
 import com.adamkaz7.medicalclinic.repository.MedicalFacilityRepository;
 import com.adamkaz7.medicalclinic.validator.DoctorValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DoctorService {
     private final DoctorRepository doctorRepository;
     private final DoctorMapper doctorMapper;
@@ -32,6 +34,7 @@ public class DoctorService {
         if (doctorRepository.existsByEmail(command.email())) {
             throw new DoctorAlreadyExistsException(command.email());
         }
+        log.info("Creating doctor profile");
         Doctor doctor = doctorMapper.toEntity(command);
         doctor = doctorRepository.save(doctor);
         return doctorMapper.toDto(doctor);
@@ -52,6 +55,7 @@ public class DoctorService {
         boolean alreadyAssigned = medicalFacilityRepository
                 .existsByIdAndDoctors_Id(facilityId, doctorId);
         DoctorValidator.validateMedicalFacilityAssignment(alreadyAssigned);
+        log.info("Assigning doctor to medical facility: doctorId={}, facilityId={}", doctorId, facilityId);
         facility.assignDoctor(doctor);
         medicalFacilityRepository.save(facility);
     }
@@ -66,6 +70,7 @@ public class DoctorService {
     @Transactional
     public void changeDoctorPassword(Long doctorId, String newPassword) {
         Doctor doctor = findDoctorById(doctorId);
+        log.info("Changing doctor password: doctorId={}", doctorId);
         doctor.changePassword(newPassword);
         doctorRepository.save(doctor);
     }
@@ -76,6 +81,7 @@ public class DoctorService {
         if (!doctor.getEmail().equals(command.email()) && doctorRepository.existsByEmail(command.email())) {
             throw new DoctorAlreadyExistsException(command.email());
         }
+        log.info("Updating doctor profile: doctorId={}", doctorId);
         doctor.updateDoctor(command);
         doctor = doctorRepository.save(doctor);
         return doctorMapper.toDto(doctor);
@@ -84,6 +90,7 @@ public class DoctorService {
     @Transactional
     public void deleteDoctor(Long doctorId) {
         Doctor doctor = findDoctorById(doctorId);
+        log.info("Deleting doctor profile: doctorId={}", doctorId);
         doctorRepository.delete(doctor);
     }
 
