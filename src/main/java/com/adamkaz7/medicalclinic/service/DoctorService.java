@@ -13,32 +13,40 @@ import com.adamkaz7.medicalclinic.repository.DoctorRepository;
 import com.adamkaz7.medicalclinic.repository.MedicalFacilityRepository;
 import com.adamkaz7.medicalclinic.validator.DoctorValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DoctorService {
     private final DoctorRepository doctorRepository;
     private final DoctorMapper doctorMapper;
     private final MedicalFacilityRepository medicalFacilityRepository;
 
+    @Transactional
     public DoctorDto addDoctor(CreateDoctorCommand command) {
         if (doctorRepository.existsByEmail(command.email())) {
             throw new DoctorAlreadyExistsException(command.email());
         }
+        log.info("Creating doctor profile");
         Doctor doctor = doctorMapper.toEntity(command);
         doctor = doctorRepository.save(doctor);
         return doctorMapper.toDto(doctor);
     }
 
-    public List<DoctorDto> getAllDoctors() {
-        return doctorRepository.findAll().stream()
-                .map(doctorMapper::toDto)
-                .toList();
+    @Transactional
+    public Page<DoctorDto> getAllDoctors(Pageable pageable) {
+        return doctorRepository.findAll(pageable)
+                .map(doctorMapper::toDto);
     }
 
+    @Transactional
     public void assignDoctorToMedicalFacility(Long doctorId, Long facilityId) {
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new DoctorNotFoundException(doctorId));
@@ -47,34 +55,42 @@ public class DoctorService {
         boolean alreadyAssigned = medicalFacilityRepository
                 .existsByIdAndDoctors_Id(facilityId, doctorId);
         DoctorValidator.validateMedicalFacilityAssignment(alreadyAssigned);
+        log.info("Assigning doctor to medical facility: doctorId={}, facilityId={}", doctorId, facilityId);
         facility.assignDoctor(doctor);
         medicalFacilityRepository.save(facility);
     }
 
+    @Transactional
     public DoctorDto getDoctorById(Long doctorId) {
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new DoctorNotFoundException(doctorId));
         return doctorMapper.toDto(doctor);
     }
 
+    @Transactional
     public void changeDoctorPassword(Long doctorId, String newPassword) {
         Doctor doctor = findDoctorById(doctorId);
+        log.info("Changing doctor password: doctorId={}", doctorId);
         doctor.changePassword(newPassword);
         doctorRepository.save(doctor);
     }
 
+    @Transactional
     public DoctorDto updateDoctorById(Long doctorId, UpdateDoctorCommand command) {
         Doctor doctor = findDoctorById(doctorId);
         if (!doctor.getEmail().equals(command.email()) && doctorRepository.existsByEmail(command.email())) {
             throw new DoctorAlreadyExistsException(command.email());
         }
+        log.info("Updating doctor profile: doctorId={}", doctorId);
         doctor.updateDoctor(command);
         doctor = doctorRepository.save(doctor);
         return doctorMapper.toDto(doctor);
     }
 
+    @Transactional
     public void deleteDoctor(Long doctorId) {
         Doctor doctor = findDoctorById(doctorId);
+        log.info("Deleting doctor profile: doctorId={}", doctorId);
         doctorRepository.delete(doctor);
     }
 

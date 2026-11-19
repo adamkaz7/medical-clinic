@@ -12,6 +12,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,12 +26,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @Tag(name = "Facilities", description = "Facilities management")
 @RestController
 @RequestMapping("/facilities")
 @RequiredArgsConstructor
+@Slf4j
 public class MedicalFacilityController {
     private final MedicalFacilityService medicalFacilityService;
 
@@ -41,6 +43,7 @@ public class MedicalFacilityController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public MedicalFacilityDto addMedicalFacility(@Valid @RequestBody CreateMedicalFacilityCommand command) {
+        log.info("Received POST /facilities request");
         return medicalFacilityService.addMedicalFacility(command);
     }
 
@@ -52,14 +55,16 @@ public class MedicalFacilityController {
     })
     @GetMapping("/{facilityId}")
     public MedicalFacilityDto getMedicalFacilityById(@PathVariable Long facilityId) {
+        log.info("Received GET /facilities/{} request", facilityId);
         return medicalFacilityService.getMedicalFacilityById(facilityId);
     }
 
     @Operation(summary = "Get all medical facilities")
     @ApiResponse(responseCode = "200", description = "Medical facility list")
     @GetMapping
-    public List<MedicalFacilityDto> getAllMedicalFacilities() {
-        return medicalFacilityService.getAllMedicalFacilities();
+    public Page<MedicalFacilityDto> getAllMedicalFacilities(Pageable pageable) {
+        log.info("Received GET /facilities request: page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
+        return medicalFacilityService.getAllMedicalFacilities(pageable);
     }
 
     @Operation(summary = "Delete medical facility by ID")
@@ -71,6 +76,7 @@ public class MedicalFacilityController {
     @DeleteMapping("/{facilityId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteMedicalFacilityById(@PathVariable Long facilityId) {
+        log.info("Received DELETE /facilities/{} request", facilityId);
         medicalFacilityService.deleteMedicalFacility(facilityId);
     }
 
@@ -84,6 +90,7 @@ public class MedicalFacilityController {
     public MedicalFacilityDto updateMedicalFacilityById(
             @PathVariable Long facilityId,
             @Valid @RequestBody UpdateMedicalFacilityCommand command) {
+        log.info("Received POST /facilities/{} request", facilityId);
         return medicalFacilityService.updateMedicalFacility(facilityId, command);
     }
 }

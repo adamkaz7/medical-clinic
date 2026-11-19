@@ -15,6 +15,10 @@ import com.adamkaz7.medicalclinic.repository.UserRepository;
 import com.adamkaz7.medicalclinic.validator.PatientValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDate;
@@ -112,8 +116,9 @@ public class PatientServiceTest {
     }
 
     @Test
-    void getAllPatients_PatientExists_ReturnsPatientDto() {
+    void getAllPatients_PatientExists_ReturnsPatientDtoPage() {
         // given
+        Pageable pageable = PageRequest.of(1, 2);
         User secondUser = new User(
                 2L,
                 "jane@example.com",
@@ -133,29 +138,41 @@ public class PatientServiceTest {
                 LocalDate.of(1995, 5, 20),
                 new UserDto(2L, "jane@example.com", "Jane", "Smith")
         );
-        when(patientRepository.findAll()).thenReturn(List.of(patient, secondPatient));
+        Page<Patient> patients = new PageImpl<>(
+                List.of(patient, secondPatient),
+                pageable,
+                6
+        );
+        when(patientRepository.findAll(pageable)).thenReturn(patients);
         when(patientMapper.toDto(patient)).thenReturn(expectedDto);
         when(patientMapper.toDto(secondPatient)).thenReturn(secondDto);
         // when
-        List<PatientDto> result = patientService.getAllPatients();
+        Page<PatientDto> result = patientService.getAllPatients(pageable);
         // then
         assertAll(
-                () -> assertEquals(2, result.size()),
-                () -> assertTrue(result.contains(expectedDto)),
-                () -> assertTrue(result.contains(secondDto))
+                () -> assertEquals(List.of(expectedDto, secondDto), result.getContent()),
+                () -> assertEquals(1, result.getNumber()),
+                () -> assertEquals(2, result.getSize()),
+                () -> assertEquals(6L, result.getTotalElements()),
+                () -> assertEquals(3, result.getTotalPages()),
+                () -> verify(patientRepository).findAll(pageable)
         );
     }
 
     @Test
-    void getAllPatients_NoPatientsExists_ReturnsEmptyList() {
+    void getAllPatients_NoPatientsExists_ReturnsEmptyPage() {
         //given
-        when(patientRepository.findAll()).thenReturn(List.of());
+        Pageable pageable = PageRequest.of(0, 2);
+        when(patientRepository.findAll(pageable)).thenReturn(Page.empty(pageable));
         // when
-        List<PatientDto> result = patientService.getAllPatients();
+        Page<PatientDto> result = patientService.getAllPatients(pageable);
         // then
         assertAll(
                 () -> assertNotNull(result),
-                () -> assertTrue(result.isEmpty())
+                () -> assertTrue(result.isEmpty()),
+                () -> assertEquals(0L, result.getTotalElements()),
+                () -> assertEquals(0, result.getTotalPages()),
+                () -> verify(patientRepository).findAll(pageable)
         );
     }
 

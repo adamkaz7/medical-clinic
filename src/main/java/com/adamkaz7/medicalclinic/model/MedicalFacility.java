@@ -3,6 +3,7 @@ package com.adamkaz7.medicalclinic.model;
 import com.adamkaz7.medicalclinic.command.UpdateMedicalFacilityCommand;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -42,7 +43,7 @@ public class MedicalFacility {
     @Column(name = "BUILDING_NUMBER", nullable = false)
     private String buildingNumber;
     @ToString.Exclude
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "DOCTOR_FACILITIES",
             joinColumns = @JoinColumn(name = "FACILITY_ID"),
@@ -64,5 +65,17 @@ public class MedicalFacility {
 
     public void removeDoctor(Doctor doctor) {
         doctors.remove(doctor);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof MedicalFacility facility)) return false;
+        return id != null && id.equals(facility.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

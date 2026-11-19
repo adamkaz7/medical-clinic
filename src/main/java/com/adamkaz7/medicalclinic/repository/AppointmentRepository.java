@@ -1,14 +1,15 @@
 package com.adamkaz7.medicalclinic.repository;
 
 import com.adamkaz7.medicalclinic.model.Appointment;
-import com.adamkaz7.medicalclinic.model.Doctor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
-    List<Appointment> findAllByPatientIsNullAndStartTimeAfterOrderByStartTime(LocalDateTime now);
-    List<Appointment> findAllByDoctor(Doctor doctor);
+    @EntityGraph(attributePaths = "doctor.medicalFacilities")
+    Page<Appointment> findAllByPatientIsNullAndStartTimeAfterOrderByStartTime(LocalDateTime now, Pageable pageable);
     boolean existsByDoctor_IdAndStartTimeLessThanAndEndTimeGreaterThan(Long doctorId, LocalDateTime startTime, LocalDateTime endTime);
 }

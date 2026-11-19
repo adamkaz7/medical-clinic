@@ -11,6 +11,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,6 +32,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/appointments")
 @RequiredArgsConstructor
+@Slf4j
 public class AppointmentController {
     private final AppointmentService appointmentService;
 
@@ -41,14 +45,16 @@ public class AppointmentController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public AppointmentDto addAppointment(@Valid @RequestBody CreateAppointmentCommand command) {
+        log.info("Received POST /appointments request: doctorId={}", command.doctorId());
         return appointmentService.addAppointment(command);
     }
 
     @Operation(summary = "Get available appointments")
     @ApiResponse(responseCode = "200", description = "Available appointment list")
     @GetMapping
-    public List<AppointmentDto> getAllAppointments() {
-        return appointmentService.getAllAppointments();
+    public Page<AppointmentDto> getAllAppointments(Pageable pageable) {
+        log.info("Received GET /appointments request: page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
+        return appointmentService.getAllAppointments(pageable);
     }
 
     @Operation(summary = "Get an appointment by ID")
@@ -59,6 +65,7 @@ public class AppointmentController {
     })
     @GetMapping("/{appointmentId}")
     public AppointmentDto getAppointmentById(@PathVariable Long appointmentId) {
+        log.info("Received GET /appointments/{} request", appointmentId);
         return appointmentService.getAppointmentById(appointmentId);
     }
 
@@ -70,6 +77,7 @@ public class AppointmentController {
     })
     @PatchMapping("/{appointmentId}/patient/{patientId}")
     public void assignPatientToAppointment(@PathVariable Long appointmentId, @PathVariable Long patientId) {
+        log.info("Received PATCH /appointments/{}/patient/{} request", appointmentId, patientId);
         appointmentService.assignPatientToAppointment(appointmentId, patientId);
     }
 
@@ -82,6 +90,7 @@ public class AppointmentController {
     @DeleteMapping("/{appointmentId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteAppointment(@PathVariable Long appointmentId) {
+        log.info("Received DELETE /appointments/{} request", appointmentId);
         appointmentService.deleteAppointment(appointmentId);
     }
 }

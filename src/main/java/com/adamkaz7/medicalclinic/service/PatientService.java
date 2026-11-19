@@ -13,29 +13,35 @@ import com.adamkaz7.medicalclinic.repository.PatientRepository;
 import com.adamkaz7.medicalclinic.repository.UserRepository;
 import com.adamkaz7.medicalclinic.validator.PatientValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PatientService {
     private final PatientRepository patientRepository;
     private final PatientMapper patientMapper;
     private final PatientValidator patientValidator;
     private final UserRepository userRepository;
 
-    public List<PatientDto> getAllPatients() {
-        return patientRepository.findAll().stream()
-                .map(patientMapper::toDto)
-                .toList();
+    @Transactional
+    public Page<PatientDto> getAllPatients(Pageable pageable) {
+        return patientRepository.findAll(pageable)
+                .map(patientMapper::toDto);
     }
 
+    @Transactional
     public PatientDto getPatientByEmail(String email) {
         Patient patient = findPatientByEmail(email);
         return patientMapper.toDto(patient);
     }
 
+    @Transactional
     public PatientDto addPatient(CreatePatientCommand command) {
         User user = userRepository.findById(command.userId())
                 .orElseThrow(() -> new UserNotFoundException(command.userId()));
@@ -45,20 +51,25 @@ public class PatientService {
         if (patientRepository.existsByIdCardNo(command.idCardNo())) {
             throw new PatientAlreadyExistsException(command.idCardNo());
         }
+        log.info("Creating patient profile: userId={}", command.userId());
         Patient patient = patientMapper.toEntity(command);
         patient.assignUser(user);
         patient = patientRepository.save(patient);
         return patientMapper.toDto(patient);
     }
 
+    @Transactional
     public void deletePatientByEmail(String email) {
         Patient patient = findPatientByEmail(email);
+        log.info("Deleting patient profile: patientId={}", patient.getId());
         patientRepository.delete(patient);
     }
 
+    @Transactional
     public PatientDto updatePatientByEmail(String email, UpdatePatientCommand command) {
         Patient patient = findPatientByEmail(email);
         patientValidator.validateIdCardNoUnchanged(patient.getIdCardNo(), command.idCardNo());
+        log.info("Updating patient profile: patientId={}", patient.getId());
         patient.updatePatient(command);
         patient = patientRepository.save(patient);
         return patientMapper.toDto(patient);

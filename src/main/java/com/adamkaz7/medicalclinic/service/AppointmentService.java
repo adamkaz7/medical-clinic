@@ -14,13 +14,17 @@ import com.adamkaz7.medicalclinic.repository.DoctorRepository;
 import com.adamkaz7.medicalclinic.repository.PatientRepository;
 import com.adamkaz7.medicalclinic.validator.AppointmentValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final DoctorRepository doctorRepository;
@@ -28,40 +32,48 @@ public class AppointmentService {
     private final AppointmentMapper appointmentMapper;
     private final AppointmentValidator appointmentValidator;
 
+    @Transactional
     public AppointmentDto addAppointment(CreateAppointmentCommand command) {
         appointmentValidator.validateAppointmentTime(command.startTime(), command.endTime());
         Doctor doctor = doctorRepository.findById(command.doctorId())
                 .orElseThrow(() -> new DoctorNotFoundException(command.doctorId()));
         appointmentValidator.validateDoctorAvailability(doctor, command.startTime(), command.endTime());
+        log.info("Creating appointment: doctorId={}, startTime={}, endTime={}",
+                command.doctorId(), command.startTime(), command.endTime());
         Appointment appointment = appointmentMapper.toEntity(command);
         appointment.assignDoctor(doctor);
         appointment = appointmentRepository.save(appointment);
         return appointmentMapper.toDto(appointment);
     }
 
-    public List<AppointmentDto> getAllAppointments() {
+    @Transactional
+    public Page<AppointmentDto> getAllAppointments(Pageable pageable) {
         return appointmentRepository
-                .findAllByPatientIsNullAndStartTimeAfterOrderByStartTime(LocalDateTime.now()).stream()
-                .map(appointmentMapper::toDto)
-                .toList();
+                .findAllByPatientIsNullAndStartTimeAfterOrderByStartTime(LocalDateTime.now(), pageable)
+                .map(appointmentMapper::toDto);
     }
 
+    @Transactional
     public void assignPatientToAppointment(Long appointmentId, Long patientId) {
         Appointment appointment = findAppointmentById(appointmentId);
         Patient patient = findPatientById(patientId);
         appointmentValidator.validatePatientAvailability(appointment);
+        log.info("Booking appointment: appointmentId={}, patientId={}", appointmentId, patientId);
         appointment.assignPatient(patient);
         appointmentRepository.save(appointment);
     }
 
+    @Transactional
     public AppointmentDto getAppointmentById(Long appointmentId) {
         Appointment appointment = findAppointmentById(appointmentId);
         return appointmentMapper.toDto(appointment);
     }
 
+    @Transactional
     public void deleteAppointment(Long appointmentId) {
         Appointment appointment = findAppointmentById(appointmentId);
         appointmentValidator.validatePatientAvailability(appointment);
+        log.info("Deleting appointment: appointmentId={}", appointmentId);
         appointmentRepository.delete(appointment);
     }
 

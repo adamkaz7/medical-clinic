@@ -3,6 +3,7 @@ package com.adamkaz7.medicalclinic.model;
 import com.adamkaz7.medicalclinic.command.UpdatePatientCommand;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -35,7 +36,7 @@ public class Patient {
     private String phoneNumber;
     @Column(name = "BIRTHDAY")
     private LocalDate birthday;
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "USER_ID", nullable = false, unique = true)
     private User user;
 
@@ -46,5 +47,17 @@ public class Patient {
 
     public void assignUser(User user) {
         this.user = user;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Patient patient)) return false;
+        return id != null && id.equals(patient.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

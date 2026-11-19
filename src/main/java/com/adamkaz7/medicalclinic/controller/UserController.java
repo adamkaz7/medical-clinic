@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
     private final UserService userService;
 
@@ -39,6 +41,7 @@ public class UserController {
     })
     @GetMapping("/{userId}")
     public UserDto getUserById(@PathVariable Long userId) {
+        log.info("Received GET /users/{} request", userId);
         return userService.getUserById(userId);
     }
 
@@ -51,6 +54,7 @@ public class UserController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto addUser(@Valid @RequestBody CreateUserCommand command) {
+        log.info("Received POST /users request");
         return userService.addUser(command);
     }
 
@@ -63,6 +67,7 @@ public class UserController {
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable Long userId) {
+        log.info("Received DELETE /users/{} request", userId);
         userService.deleteUserById(userId);
     }
 
@@ -75,6 +80,7 @@ public class UserController {
     @PatchMapping("/{userId}/password")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void changeUserPassword(@PathVariable Long userId, @Valid @RequestBody ChangeUserPasswordCommand command) {
+        log.info("Received PATCH /users/{}/password request", userId);
         userService.changeUserPassword(userId, command.password());
     }
 }
